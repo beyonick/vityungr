@@ -20,14 +20,19 @@ fail() { echo "::error::$*"; exit 1; }
 echo "target=${HOSTING_PROTOCOL}://${HOSTING_HOST}/${HOSTING_DIR}"
 
 # .well-known и cgi-bin создаёт сам хостинг: --delete не должен их трогать.
-# Фото не меняются между сборками (имена с хэшем), поэтому mirror перезаливает только новое.
+# В CI у всех файлов свежая дата, поэтому по времени сравнивать нельзя — залилось бы всё.
+# 1) Всё, кроме html, сверяем по размеру: в _astro имя файла содержит хэш, новое содержимое = новое имя.
+# 2) html заливаем всегда и после файлов, чтобы страницы не ссылались на ещё не залитое.
+# 3) Только потом удаляем то, чего больше нет в сборке.
 LFTP_PASSWORD="$HOSTING_PASSWORD" lftp --env-password -u "$HOSTING_USER" "${HOSTING_PROTOCOL}://${HOSTING_HOST}" -e "
   set cmd:fail-exit yes
   set net:max-retries 3
   set net:timeout 20
   set sftp:auto-confirm yes
   set ftp:ssl-allow yes
-  mirror --reverse --delete --only-newer --parallel=4 \
+  mirror --reverse --ignore-time --parallel=4 --exclude-glob *.html $OUT/ $HOSTING_DIR/
+  mirror --reverse --parallel=4 --include-glob *.html $OUT/ $HOSTING_DIR/
+  mirror --reverse --delete --ignore-time \
     --exclude-glob .well-known/ --exclude-glob cgi-bin/ \
     $OUT/ $HOSTING_DIR/
   quit
