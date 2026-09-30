@@ -1,5 +1,5 @@
 ---
-import { galleryOrder, mediumSize, priceOrState, ratioOf, workHref } from "../../lib/works";
+import { galleryOrder, mediumSize, orderHref, priceOrState, ratioOf, workHref } from "../../lib/works";
 import SectionHead from "../SectionHead.astro";
 import Wall, { type WallItem } from "../Wall.astro";
 
@@ -14,7 +14,7 @@ const items: WallItem[] = all.slice(0, 24).map((w) => ({
   title: w.title,
   meta: mediumSize(w),
   price: priceOrState(w),
-  viewLinkLabel: "View and request",
+  order: orderHref(w),
 }));
 ---
 
@@ -24,7 +24,10 @@ const items: WallItem[] = all.slice(0, 24).map((w) => ({
       Oil sketches on thick primed board and a few tempera paintings on canvas, all signed. Every piece is one of a
       kind; most were painted outdoors, from life.
     </p>
-    <p>Ordering is a request, not a payment: I’ll email you to agree on shipping and how to pay.</p>
+    <p>
+        Ordering is a <a class="ulink" href="/order">request</a>, not a payment: I’ll email you to agree on
+        shipping and how to pay.
+      </p>
   </SectionHead>
   <Wall items={items} height={210} rows={3} />
   <div class="more pad" data-reveal="text">

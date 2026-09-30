@@ -1,0 +1,100 @@
+---
+// Все серии с числом работ — над стеной на /works и на страницах серий
+import { series } from "../data/series";
+import { availableWorks, worksIn } from "../lib/works";
+
+interface Props {
+  /** slug открытой серии; без него открыта /works */
+  current?: string;
+}
+
+const { current } = Astro.props;
+const links = [
+  { href: "/works", label: "Available now", count: availableWorks().length, active: !current },
+  ...series.map((s) => ({
+    href: `/works/${s.slug}`,
+    label: s.title,
+    count: worksIn(s.slug).length,
+    active: s.slug === current,
+  })),
+];
+---
+
+<nav class="snav" aria-label="Series" data-reveal="text">
+  <ul>
+    {
+      links.map((l) => (
+        <li>
+          <a href={l.href} aria-current={l.active ? "page" : undefined}>
+            {l.label}
+            <span class="num">{l.count}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .snav {
+    margin: 0 var(--gutter) clamp(40px, 4.5vw, 64px);
+  }
+
+  .snav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .snav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: var(--t-small);
+    color: var(--ink-2);
+    transition:
+      border-color 0.3s var(--ease-soft),
+      color 0.3s var(--ease-soft);
+  }
+
+  .snav a:hover {
+    border-color: rgb(0 0 0 / 0.35);
+    color: var(--ink);
+  }
+
+  .snav a[aria-current="page"] {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  .snav .num {
+    color: var(--ink-3);
+    font-size: 0.6875rem;
+  }
+
+  /* на телефоне — одна строка, листается пальцем */
+  @media (max-width: 759px) {
+    .snav {
+      margin-inline: 0;
+    }
+
+    .snav ul {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-inline: var(--gutter);
+      scrollbar-width: none;
+    }
+
+    .snav ul::-webkit-scrollbar {
+      display: none;
+    }
+
+    .snav li {
+      flex: none;
+    }
+  }
+</style>

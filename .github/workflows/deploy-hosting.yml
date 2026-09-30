@@ -18,6 +18,12 @@ jobs:
       HOSTING_USER: ${{ vars.HOSTING_USER }}
       HOSTING_DIR: ${{ vars.HOSTING_DIR || 'vityungr/public_html' }}
       HOSTING_PASSWORD: ${{ secrets.HOSTING_PASSWORD }}
+      # форма заявки /order → Telegram и почта (public/api/order.php)
+      ORDER_TELEGRAM_TOKEN: ${{ secrets.ORDER_TELEGRAM_TOKEN }}
+      ORDER_TELEGRAM_CHAT: ${{ secrets.ORDER_TELEGRAM_CHAT }}
+      ORDER_EMAIL: ${{ vars.ORDER_EMAIL }}
+      ORDER_MAIL_FROM: ${{ vars.ORDER_MAIL_FROM }}
+      SITE_URL: ${{ vars.SITE_URL }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

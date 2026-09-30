@@ -5,6 +5,7 @@
   --ink-2: #737373; /* вторичный текст, AA на белом */
   --ink-3: #a3a3a3; /* только для декоративных меток */
   --line: rgb(0 0 0 / 0.1);
+  --error: #b3261e; /* ошибки в форме, AA на белом */
 
   --f-serif: "Fraunces Variable", "Iowan Old Style", Georgia, serif;
   --f-sans: "Schibsted Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
@@ -183,6 +184,18 @@ html.menu-open {
 
 .tlink[target="_blank"]:hover::after {
   transform: translate(2px, -2px);
+}
+
+/* Ссылка внутри текста: всегда подчёркнута */
+.ulink {
+  color: var(--ink);
+  background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  transition: background-size 0.4s var(--ease-out);
+}
+
+.ulink:hover {
+  background-size: 0 1px;
+  background-position: 100% 100%;
 }
 
 /* ---------- Раскладка ---------- */

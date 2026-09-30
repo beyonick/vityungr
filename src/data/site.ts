@@ -8,6 +8,16 @@ export const site = {
     "Landscapes painted outdoors by Vityungr (Viktor Grachev), a plein-air painter based in Montenegro. Original oil sketches, tempera paintings, signed prints and a monthly print club.",
 };
 
+// Оператор персональных данных для политики и согласия (ФИО полностью, как требует 152-ФЗ)
+export const operator = {
+  nameEn: "Viktor Vyacheslavovich Grachev",
+  nameRu: "Грачёв Виктор Вячеславович",
+  nameRuDative: "Грачёву Виктору Вячеславовичу",
+  email: "vityungr.art@gmail.com",
+  // дата редакции политики и согласия
+  effective: "2026-10-01",
+};
+
 export const nav = [
   { label: "Works", href: "/works" },
   { label: "Prints", href: "/prints" },

@@ -81,8 +81,21 @@ export function artMeta(w: Work): string {
   return [w.medium, w.size && formatSize(w.size), state].filter(Boolean).join(" · ");
 }
 
+/** Папка работы — последняя часть адреса её страницы */
+export const slugOf = (w: Work) => workId(w).split("/").pop()!;
+
 export function workHref(w: Work): string {
-  return `/works/${w.series}/${workId(w).split("/").pop()}`;
+  return `/works/${w.series}/${slugOf(w)}`;
+}
+
+/** «montenegro/budva» — id работы в форме заказа */
+export function orderId(w: Work): string {
+  return workId(w).split("/").slice(1).join("/");
+}
+
+/** Ссылка на форму заказа с выбранной работой — только для тех, что в продаже */
+export function orderHref(w: Work): string | undefined {
+  return w.status === "available" ? `/order?work=${orderId(w)}` : undefined;
 }
 
 /** Фото «в руках / в интерьере», если есть — для hover-состояния карточки. */
@@ -94,9 +107,35 @@ export function contextPhoto(w: Work): WorkImage | undefined {
 
 export const ratioOf = (w: { images: WorkImage[] }) => w.images[0].w / w.images[0].h;
 
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** «Oil on board» (в каталоге встречается и со строчной) */
+export const mediumOf = (w: Work) => cap(w.medium);
+
 /** «Oil on board, 47 × 32 cm» */
 export function mediumSize(w: Work): string {
-  return [w.medium, w.size && formatSize(w.size)].filter(Boolean).join(", ");
+  return [mediumOf(w), w.size && formatSize(w.size)].filter(Boolean).join(", ");
+}
+
+/** Ширина и высота в см. Какое число — высота, решаем по пропорциям фото: в каталоге порядок не всегда один. */
+export function sizeCm(w: Work): { w: number; h: number } | null {
+  const m = w.size.match(/([\d.]+)\s*x\s*([\d.]+)/i);
+  if (!m) return null;
+  const [a, b] = [Number(m[1]), Number(m[2])];
+  const wide = ratioOf(w) >= 1;
+  return { w: wide ? Math.max(a, b) : Math.min(a, b), h: wide ? Math.min(a, b) : Math.max(a, b) };
+}
+
+/** Статус словами — для страницы работы */
+export function stateLabel(w: Work): string {
+  return { available: "Available", reserved: "Reserved", sold: "Sold", archive: "Not available" }[w.status];
+}
+
+/** Работы серии в порядке её страницы: в продаже (новые первыми), забронированные, проданные, остальные */
+export function seriesOrder(slug: string): Work[] {
+  const rank = { available: 0, reserved: 1, sold: 2, archive: 3 };
+  const fresh = (w: Work) => (w.label === "NEW" ? 0 : 1);
+  return worksIn(slug).sort((a, b) => rank[a.status] - rank[b.status] || fresh(a) - fresh(b));
 }
 
 /** Цена, если работа продаётся, иначе статус. Скидки не показываем. */

@@ -3,7 +3,7 @@
 // С мышью выбранная картина опускается сверху на всю ширину экрана (scripts/art.ts), наведение на
 // миниатюру меняет её. На тач-экранах выбранная картина стоит по центру и меняется тапом.
 import { getImage, Image } from "astro:assets";
-import { galleryOrder, loadImage, mediumSize, priceOrState, ratioOf, workHref } from "../../lib/works";
+import { galleryOrder, loadImage, mediumSize, orderHref, priceOrState, ratioOf, workHref } from "../../lib/works";
 
 const works = galleryOrder().slice(0, 20);
 const items = await Promise.all(
@@ -62,7 +62,7 @@ const count = galleryOrder().length;
             data-art-title={p.work.title}
             data-art-meta={[mediumSize(p.work), priceOrState(p.work)].filter(Boolean).join(" · ")}
             data-art-href={workHref(p.work)}
-            data-art-href-label="View and request"
+            data-art-order={orderHref(p.work)}
           />
           <span class="hero__cap">
             <span class="serif hero__cap-title">{p.work.title}</span>

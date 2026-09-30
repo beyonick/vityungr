@@ -17,9 +17,12 @@
         <p id="viewer-title" class="viewer__title serif" data-viewer-title></p>
         <p class="viewer__meta muted" data-viewer-meta></p>
       </div>
-      <a class="tlink" href="/" data-viewer-link hidden>
-        <span data-viewer-link-label>View the work</span>
-      </a>
+      <p class="viewer__links">
+        <a class="tlink" href="/order" data-viewer-order hidden>Request this work</a>
+        <a class="tlink" href="/" data-viewer-link hidden>
+          <span data-viewer-link-label>View the work</span>
+        </a>
+      </p>
     </figcaption>
   </figure>
   <button class="viewer__close label" type="button" data-viewer-close>Close <span aria-hidden="true">✕</span></button>
@@ -118,8 +121,18 @@
     font-size: var(--t-small);
   }
 
+  .viewer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 24px;
+  }
+
   .viewer__caption .tlink {
     font-size: var(--t-small);
+  }
+
+  .viewer__caption .tlink[hidden] {
+    display: none;
   }
 
   .viewer__close {

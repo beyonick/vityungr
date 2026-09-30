@@ -1,0 +1,310 @@
+---
+// Политика в отношении обработки персональных данных (152-ФЗ, ст. 18.1). Русская версия — основная.
+// Оператор и дата редакции — src/data/site.ts (operator). Поменялась обработка
+// (например, добавили Метрику или рассылку) — обновить текст и дату.
+import LegalDoc from "../components/LegalDoc.astro";
+import Base from "../layouts/Base.astro";
+import { operator } from "../data/site";
+
+const host = new URL(Astro.site!).host;
+const url = `https://${host}`;
+const mail = operator.email;
+---
+
+<Base title="Privacy policy" description="How Vityungr (Viktor Grachev) collects, uses and protects personal data on this website.">
+  <LegalDoc other={{ href: "/consent", en: "Consent to personal data processing", ru: "Согласие на обработку персональных данных" }}>
+    <Fragment slot="en">
+      <h1>Privacy policy</h1>
+      <p class="lede">
+        What I collect when you send a request on this site, why, who else sees it and how to have it deleted. In short:
+        only what I need to answer you and ship a painting, nothing for advertising, no cookies.
+      </p>
+
+      <h2>1. General provisions</h2>
+      <p>
+        1.1. This Policy sets out how personal data of visitors to <a href={url}>{host}</a> (the “Site”) is processed and
+        protected. It is drawn up under Russian Federal Law No. 152-FZ of 27 July 2006 “On Personal Data” (the “Law”).
+      </p>
+      <p>
+        1.2. The personal data operator is <strong>{operator.nameEn}</strong> (the “Operator”), the artist whose works are
+        shown on the Site. Contact for all data questions: <a href={`mailto:${mail}`}>{mail}</a>.
+      </p>
+      <p>
+        1.3. The Policy covers all personal data the Operator receives through the Site and in correspondence started
+        through it. It is publicly available at <a href="/privacy">{host}/privacy</a>.
+      </p>
+      <p>1.4. Terms are used as defined in the Law.</p>
+
+      <h2>2. What data, why and on what grounds</h2>
+      <p>
+        2.1. <strong>Request for a work</strong> (the form at <a href="/order">{host}/order</a>). Data: name, email,
+        country of delivery; optionally a Telegram username, WhatsApp or phone number; the text of your message; the
+        work you chose. Purpose: to answer the request, agree on the price, payment and delivery, and to conclude and
+        perform the sale. Grounds: your consent (Art. 6(1)(1) of the Law) and entering into and performing a contract
+        to which you are a party, including steps taken at your request before it is concluded (Art. 6(1)(5)).
+      </p>
+      <p>
+        2.2. <strong>Delivery and payment.</strong> Once a purchase is agreed, the Operator receives by email what is
+        needed to ship the work: full name, postal address and phone number. Purpose: sending the work by post or
+        courier. Grounds: performance of the contract (Art. 6(1)(5)). Payment goes through payment services or a bank
+        transfer; the Operator does not receive or store bank card details.
+      </p>
+      <p>
+        2.3. <strong>Correspondence.</strong> If you write to the Operator by email or in the messengers listed on the
+        Site, the Operator processes your address or username and the content of the messages in order to reply.
+      </p>
+      <p>
+        2.4. <strong>Technical data.</strong> With every request the Site stores your IP address, browser details (user
+        agent) and the date and time of sending: this is how the Operator can show that consent was given and protect the
+        form from abuse. The hosting provider also keeps server logs (IP address, date and time, page address, browser
+        details) to keep the Site running and secure.
+      </p>
+      <p>
+        2.5. The Operator does not process special categories of personal data (racial or ethnic origin, political
+        views, health and so on) or biometric data, and makes no decisions with legal effect based solely on automated
+        processing.
+      </p>
+      <p>2.6. The Operator does not use your data for advertising or newsletters and does not sell it.</p>
+
+      <h2>3. Cookies and analytics</h2>
+      <p>
+        3.1. The Site does not use cookies, analytics counters or advertising systems. Fonts are served from the Site
+        itself, without calls to third-party services.
+      </p>
+      <p>
+        3.2. The Site links to Instagram, TikTok, YouTube, Telegram, VK, Patreon, PayPal and Boosty. Once you follow such
+        a link, your data is processed by the owner of that service under its own rules.
+      </p>
+
+      <h2>4. How data is processed</h2>
+      <p>
+        4.1. Processing is mixed: both automated and manual. Actions: collection, recording, systematisation,
+        accumulation, storage, clarification (updating, changing), retrieval, use, transfer (provision, access),
+        blocking, deletion and destruction.
+      </p>
+      <p>
+        4.2. <strong>Localisation.</strong> Personal data of Russian citizens collected through the Site is recorded,
+        systematised, accumulated, stored, clarified and retrieved using a database located in the Russian Federation: a
+        request is first saved on the hosting provider’s server in Russia and only then forwarded to the Operator.
+      </p>
+      <p>4.3. <strong>Transfer.</strong> Data is passed on only as far as the purposes require:</p>
+      <ul>
+        <li>to the hosting provider Timeweb (Russia): storing the Site and copies of requests;</li>
+        <li>to Telegram and Google (Gmail): delivering requests to the Operator and correspondence;</li>
+        <li>to postal and courier services: delivering the work (name, address, phone);</li>
+        <li>to public authorities where the law requires it.</li>
+      </ul>
+      <p>
+        4.4. <strong>Cross-border transfer.</strong> The Operator lives and works in Montenegro, and the servers of
+        Telegram and Google are outside Russia, including in countries that do not ensure adequate protection of data
+        subjects’ rights. Data from requests is therefore transferred abroad, on the basis of your consent.
+      </p>
+      <p>
+        4.5. The technical administrator who maintains the hosting on the Operator’s behalf has access to the server only
+        to keep the Site working and does not use personal data for any other purpose.
+      </p>
+
+      <h2>5. How long data is kept</h2>
+      <p>5.1. Copies of requests on the server are deleted automatically 12 months after they are received.</p>
+      <p>
+        5.2. Correspondence and purchase data are kept until the purposes are achieved (the sale is completed and the
+        conversation is over), but no longer than 3 years after your last message, unless the law requires a longer
+        period.
+      </p>
+      <p>
+        5.3. When consent is withdrawn or the purpose is achieved, data is destroyed within 30 days, unless the Operator
+        has another lawful ground to keep processing it.
+      </p>
+      <p>5.4. Server logs are kept by the hosting provider for the period set by its own rules.</p>
+
+      <h2>6. Your rights</h2>
+      <p>You have the right to:</p>
+      <ul>
+        <li>get information about how your data is processed (Art. 14 of the Law);</li>
+        <li>
+          have your data corrected, blocked or destroyed if it is incomplete, outdated, inaccurate, unlawfully obtained or
+          not needed for the stated purpose;
+        </li>
+        <li>withdraw your consent;</li>
+        <li>
+          complain about the Operator to Roskomnadzor (the Russian data protection authority) or to a court. If you are in
+          the EU, EEA or UK, you also have the rights under the GDPR, including data portability, objecting to processing
+          and complaining to your local supervisory authority.
+        </li>
+      </ul>
+      <p>
+        Send requests to <a href={`mailto:${mail}`}>{mail}</a>, preferably from the address you used in your request, and
+        say when you sent it, so the Operator can find your data. The Operator replies within 10 working days; this can
+        be extended by 5 working days with an explanation.
+      </p>
+
+      <h2>7. Security</h2>
+      <ul>
+        <li>the Site works over HTTPS;</li>
+        <li>copies of requests are kept outside the public part of the server and cannot be opened from the web;</li>
+        <li>access to the server, email and Telegram is password-protected and limited to the Operator and the technical administrator;</li>
+        <li>requests are deleted automatically when the retention period ends;</li>
+        <li>the form is protected against automated spam.</li>
+      </ul>
+
+      <h2>8. Final provisions</h2>
+      <p>
+        8.1. The Operator may change this Policy. A new version takes effect when it is published on the Site, unless it
+        says otherwise. The date of the current version is shown on this page.
+      </p>
+      <p>8.2. Questions about this Policy: <a href={`mailto:${mail}`}>{mail}</a>.</p>
+    </Fragment>
+
+    <Fragment slot="ru">
+      <h1>Политика в&nbsp;отношении обработки персональных данных</h1>
+      <p class="lede">
+        Какие данные я получаю через форму на сайте, зачем, кому они передаются и как их удалить. Коротко: только то, что
+        нужно, чтобы ответить и отправить картину. Без рекламы и без cookie.
+      </p>
+
+      <h2>1. Общие положения</h2>
+      <p>
+        1.1. Настоящая Политика определяет порядок обработки и меры по защите персональных данных посетителей сайта{" "}
+        <a href={url}>{host}</a> (далее — Сайт). Политика составлена в соответствии с Федеральным законом от 27.07.2006
+        № 152-ФЗ «О персональных данных» (далее — Закон).
+      </p>
+      <p>
+        1.2. Оператор персональных данных — <strong>{operator.nameRu}</strong> (далее — Оператор), художник, автор работ,
+        представленных на Сайте. Адрес для обращений по вопросам персональных данных:{" "}
+        <a href={`mailto:${mail}`}>{mail}</a>.
+      </p>
+      <p>
+        1.3. Политика распространяется на все персональные данные, которые Оператор получает через Сайт, а также в
+        переписке, начатой через Сайт. Политика находится в свободном доступе по адресу{" "}
+        <a href="/privacy#ru">{host}/privacy</a>.
+      </p>
+      <p>1.4. Термины используются в значениях, установленных Законом.</p>
+
+      <h2>2. Состав данных, цели и правовые основания обработки</h2>
+      <p>
+        2.1. <strong>Заявка на покупку работы</strong> (форма на странице <a href="/order">{host}/order</a>). Данные: имя,
+        адрес электронной почты, страна доставки; по желанию — имя пользователя в Telegram, номер WhatsApp или телефона;
+        текст сообщения; выбранная работа. Цель: ответ на заявку, согласование стоимости, способа оплаты и доставки,
+        заключение и исполнение договора купли-продажи работы. Правовые основания: согласие субъекта персональных данных
+        (п. 1 ч. 1 ст. 6 Закона); заключение и исполнение договора, стороной которого является субъект, в том числе
+        действия по его инициативе до заключения договора (п. 5 ч. 1 ст. 6 Закона).
+      </p>
+      <p>
+        2.2. <strong>Доставка и оплата.</strong> Если покупка согласована, Оператор получает по электронной почте данные,
+        необходимые для отправки работы: фамилию, имя, почтовый адрес, номер телефона. Цель: отправка работы почтой или
+        курьерской службой. Основание: исполнение договора (п. 5 ч. 1 ст. 6 Закона). Оплата проходит через платёжные
+        сервисы или банковским переводом; данные банковских карт Оператор не получает и не хранит.
+      </p>
+      <p>
+        2.3. <strong>Переписка.</strong> Если вы пишете Оператору по электронной почте или в мессенджерах, указанных на
+        Сайте, Оператор обрабатывает ваш адрес или имя пользователя и содержание переписки, чтобы ответить вам.
+      </p>
+      <p>
+        2.4. <strong>Технические данные.</strong> При отправке заявки сохраняются IP-адрес, сведения о браузере (user
+        agent), дата и время отправки — чтобы подтвердить факт получения согласия и защитить форму от злоупотреблений.
+        Кроме того, хостинг-провайдер ведёт журналы запросов к серверу (IP-адрес, дата и время, адрес страницы, сведения
+        о браузере) для обеспечения работы и безопасности Сайта.
+      </p>
+      <p>
+        2.5. Оператор не обрабатывает специальные категории персональных данных (сведения о расовой, национальной
+        принадлежности, политических взглядах, состоянии здоровья и т. п.) и биометрические персональные данные, а также
+        не принимает решений, порождающих юридические последствия, на основании исключительно автоматизированной
+        обработки.
+      </p>
+      <p>2.6. Оператор не использует персональные данные для рекламы и рассылок и не продаёт их.</p>
+
+      <h2>3. Файлы cookie и аналитика</h2>
+      <p>
+        3.1. Сайт не использует файлы cookie, счётчики аналитики и рекламные системы. Шрифты загружаются с самого Сайта,
+        без обращения к сторонним сервисам.
+      </p>
+      <p>
+        3.2. На Сайте есть ссылки на Instagram*, TikTok, YouTube, Telegram, VK, Patreon, PayPal и Boosty. После перехода
+        по такой ссылке данные обрабатывает владелец соответствующего сервиса по своим правилам.
+      </p>
+
+      <h2>4. Порядок и условия обработки</h2>
+      <p>
+        4.1. Обработка ведётся смешанным способом — с использованием средств автоматизации и без них. Действия с
+        данными: сбор, запись, систематизация, накопление, хранение, уточнение (обновление, изменение), извлечение,
+        использование, передача (предоставление, доступ), блокирование, удаление, уничтожение.
+      </p>
+      <p>
+        4.2. <strong>Локализация.</strong> Запись, систематизация, накопление, хранение, уточнение и извлечение
+        персональных данных граждан Российской Федерации при их сборе через Сайт осуществляются с использованием базы
+        данных, находящейся на территории Российской Федерации: заявка сначала сохраняется на сервере хостинг-провайдера
+        в России и только затем пересылается Оператору.
+      </p>
+      <p>4.3. <strong>Передача третьим лицам</strong> — только в объёме, необходимом для целей обработки:</p>
+      <ul>
+        <li>хостинг-провайдеру Timeweb (Россия) — для хранения Сайта и копий заявок;</li>
+        <li>сервисам Telegram и Google (Gmail) — для доставки заявок Оператору и переписки;</li>
+        <li>почтовым и курьерским службам — для доставки работы (имя, адрес, телефон);</li>
+        <li>государственным органам — в случаях, предусмотренных законодательством.</li>
+      </ul>
+      <p>
+        4.4. <strong>Трансграничная передача.</strong> Оператор живёт и работает в Черногории, а серверы Telegram и Google
+        находятся за пределами России, в том числе в государствах, не обеспечивающих адекватной защиты прав субъектов
+        персональных данных. Поэтому данные из заявок передаются за рубеж — на основании согласия субъекта персональных
+        данных.
+      </p>
+      <p>
+        4.5. Технический администратор, обслуживающий хостинг по поручению Оператора, имеет доступ к серверу только для
+        поддержки работы Сайта и не использует персональные данные в иных целях.
+      </p>
+
+      <h2>5. Сроки обработки и хранения</h2>
+      <p>5.1. Копии заявок на сервере удаляются автоматически через 12 месяцев после получения.</p>
+      <p>
+        5.2. Переписка и данные, связанные с покупкой, хранятся до достижения целей обработки (завершения сделки и
+        переписки), но не дольше 3 лет с момента последнего обращения, если более длительный срок не установлен законом.
+      </p>
+      <p>
+        5.3. При отзыве согласия или достижении целей обработки данные уничтожаются в течение 30 дней, если у Оператора
+        нет иного законного основания для их обработки.
+      </p>
+      <p>5.4. Журналы сервера хранятся у хостинг-провайдера в течение срока, установленного его правилами.</p>
+
+      <h2>6. Права субъекта персональных данных</h2>
+      <p>Вы вправе:</p>
+      <ul>
+        <li>получать сведения об обработке ваших персональных данных (ст. 14 Закона);</li>
+        <li>
+          требовать уточнения, блокирования или уничтожения данных, если они неполные, устаревшие, неточные, незаконно
+          полученные или не являются необходимыми для заявленной цели;
+        </li>
+        <li>отозвать согласие на обработку персональных данных;</li>
+        <li>
+          обжаловать действия Оператора в Роскомнадзоре или в суде. Посетители из Европейского союза, ЕЭЗ и
+          Великобритании также имеют права, предусмотренные GDPR, в том числе на переносимость данных, возражение против
+          обработки и жалобу в надзорный орган по месту жительства.
+        </li>
+      </ul>
+      <p>
+        Запрос направляется на <a href={`mailto:${mail}`}>{mail}</a> — лучше с того адреса, который был указан в заявке, с
+        указанием даты заявки, чтобы Оператор мог найти ваши данные. Оператор отвечает в течение 10 рабочих дней с даты
+        получения запроса; срок может быть продлён не более чем на 5 рабочих дней с объяснением причин.
+      </p>
+
+      <h2>7. Меры защиты</h2>
+      <ul>
+        <li>Сайт работает по защищённому протоколу HTTPS;</li>
+        <li>копии заявок хранятся вне публичной части сервера и недоступны из интернета;</li>
+        <li>доступ к серверу, почте и Telegram защищён паролями и есть только у Оператора и технического администратора;</li>
+        <li>заявки удаляются автоматически по истечении срока хранения;</li>
+        <li>форма защищена от автоматической рассылки спама.</li>
+      </ul>
+
+      <h2>8. Заключительные положения</h2>
+      <p>
+        8.1. Оператор вправе вносить изменения в Политику. Новая редакция вступает в силу с момента публикации на Сайте,
+        если в ней не указано иное. Дата действующей редакции указана на этой странице.
+      </p>
+      <p>8.2. Вопросы по Политике можно направить на <a href={`mailto:${mail}`}>{mail}</a>.</p>
+
+      <p class="legal-foot muted">
+        * Instagram принадлежит компании Meta, признанной экстремистской организацией и запрещённой на территории России.
+      </p>
+    </Fragment>
+  </LegalDoc>
+</Base>

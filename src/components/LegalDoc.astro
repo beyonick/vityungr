@@ -1,0 +1,293 @@
+---
+// Юридический документ на двух языках: английский (язык сайта) и русский (по 152-ФЗ, он главный).
+// Слоты en и ru. С JS видна одна версия, переключатель вверху; /privacy#ru открывает русскую.
+// Без JS показываются обе подряд.
+import { operator } from "../data/site";
+
+interface Props {
+  /** Второй документ — ссылка в боковой колонке */
+  other: { href: string; en: string; ru: string };
+}
+
+const { other } = Astro.props;
+const date = new Date(operator.effective);
+const dateEn = date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+const dateRu = date.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+---
+
+<article class="legal" data-legal>
+  <div class="legal__meta label">
+    <span><span class="legal__n num">—</span>Legal</span>
+    <div class="legal__langs" role="group" aria-label="Language" hidden data-langs>
+      <button type="button" class="label" lang="en" aria-pressed="true" data-lang-btn="en">English</button>
+      <button type="button" class="label" lang="ru" aria-pressed="false" data-lang-btn="ru">Русский</button>
+    </div>
+  </div>
+
+  <div class="legal__grid">
+    <div class="legal__doc" lang="en" id="en" data-lang="en">
+      <aside class="legal__side">
+        <p class="label muted">Effective</p>
+        <p>{dateEn}</p>
+        <p class="label muted">See also</p>
+        <p><a class="tlink" href={other.href}>{other.en}</a></p>
+        <p class="legal__note muted">
+          This is a translation. The Russian version is the governing one; if the two differ, the Russian version applies.
+        </p>
+      </aside>
+      <div class="legal__body">
+        <slot name="en" />
+      </div>
+    </div>
+
+    <div class="legal__doc" lang="ru" id="ru" data-lang="ru">
+      <aside class="legal__side">
+        <p class="label muted">Редакция</p>
+        <p>от {dateRu}</p>
+        <p class="label muted">См. также</p>
+        <p><a class="tlink" href={`${other.href}#ru`}>{other.ru}</a></p>
+      </aside>
+      <div class="legal__body">
+        <slot name="ru" />
+      </div>
+    </div>
+  </div>
+</article>
+
+<style>
+  .legal {
+    margin-inline: var(--gutter);
+    padding-top: clamp(120px, 16vh, 180px);
+  }
+
+  .legal__meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    min-height: 40px;
+    padding-top: 6px;
+    border-top: 1px solid var(--line);
+  }
+
+  .legal__n {
+    display: inline-block;
+    min-width: 3em;
+    color: var(--ink-3);
+  }
+
+  .legal__langs {
+    display: flex;
+    gap: 4px;
+  }
+
+  .legal__langs[hidden] {
+    display: none;
+  }
+
+  .legal__langs button {
+    min-height: 36px;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: none;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition:
+      border-color 0.3s var(--ease-soft),
+      color 0.3s var(--ease-soft);
+  }
+
+  .legal__langs button:hover {
+    color: var(--ink);
+  }
+
+  .legal__langs button[aria-pressed="true"] {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  .legal__doc {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(16px, 1.8vw, 28px);
+    padding-top: clamp(28px, 3.5vw, 48px);
+  }
+
+  .legal__doc + .legal__doc {
+    margin-top: clamp(64px, 8vw, 120px);
+    border-top: 1px solid var(--line);
+  }
+
+  .legal__doc[hidden] {
+    display: none;
+  }
+
+  .legal__doc[hidden] + .legal__doc,
+  :global(html.js) .legal__doc + .legal__doc {
+    margin-top: 0;
+    border-top: 0;
+  }
+
+  .legal__side {
+    grid-column: 1 / span 3;
+    align-self: start;
+    position: sticky;
+    top: 96px;
+    font-size: var(--t-small);
+  }
+
+  .legal__side .label {
+    margin-top: 20px;
+    margin-bottom: 4px;
+  }
+
+  .legal__side .label:first-child {
+    margin-top: 0;
+  }
+
+  .legal__side .tlink {
+    min-height: 24px;
+  }
+
+  .legal__note {
+    margin-top: 20px;
+    max-width: 30ch;
+  }
+
+  /* ---------- Текст документа ---------- */
+  .legal__body {
+    grid-column: 4 / span 7;
+    max-width: 70ch;
+    font-size: 0.9375rem;
+    line-height: 1.65;
+  }
+
+  .legal__body :global(h1) {
+    margin-bottom: clamp(20px, 2.4vw, 32px);
+    font-family: var(--f-serif);
+    font-weight: 340;
+    font-variation-settings: "SOFT" 100, "WONK" 0;
+    font-size: clamp(2.1rem, 1.2rem + 2.8vw, 4rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .legal__body :global(.lede) {
+    margin-bottom: clamp(32px, 3.5vw, 48px);
+    font-size: 1.0625rem;
+    color: var(--ink);
+    text-wrap: pretty;
+  }
+
+  .legal__body :global(h2) {
+    margin: clamp(36px, 3.6vw, 52px) 0 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .legal__body :global(p),
+  .legal__body :global(li) {
+    color: #3d3d3d;
+    text-wrap: pretty;
+  }
+
+  .legal__body :global(p + p),
+  .legal__body :global(p + ul),
+  .legal__body :global(ul + p),
+  .legal__body :global(ol + p) {
+    margin-top: 0.75em;
+  }
+
+  .legal__body :global(ul),
+  .legal__body :global(ol) {
+    margin-top: 0.5em;
+  }
+
+  .legal__body :global(ul li),
+  .legal__body :global(ol.legal-list > li) {
+    position: relative;
+    padding-left: 1.4em;
+  }
+
+  .legal__body :global(ul li + li),
+  .legal__body :global(ol.legal-list > li + li) {
+    margin-top: 0.4em;
+  }
+
+  .legal__body :global(ul li::before) {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--ink-3);
+  }
+
+  .legal__body :global(ol.legal-list) {
+    counter-reset: item;
+  }
+
+  .legal__body :global(ol.legal-list > li) {
+    counter-increment: item;
+    padding-left: 2em;
+  }
+
+  .legal__body :global(ol.legal-list > li::before) {
+    content: counter(item) ".";
+    position: absolute;
+    left: 0;
+    color: var(--ink-2);
+  }
+
+  .legal__body :global(a) {
+    background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+    overflow-wrap: anywhere;
+  }
+
+  .legal__body :global(strong) {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .legal__body :global(.legal-foot) {
+    margin-top: clamp(40px, 4vw, 56px);
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    font-size: var(--t-small);
+  }
+
+  @media (max-width: 859px) {
+    .legal__side {
+      position: static;
+      grid-column: 1 / -1;
+      grid-row: 2;
+      margin-top: 48px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .legal__body {
+      grid-column: 1 / -1;
+      grid-row: 1;
+    }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>("[data-legal]");
+  if (root) {
+    const docs = Array.from(root.querySelectorAll<HTMLElement>("[data-lang]"));
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-lang-btn]"));
+    const show = (lang: string, updateUrl: boolean) => {
+      docs.forEach((d) => (d.hidden = d.dataset.lang !== lang));
+      buttons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.langBtn === lang)));
+      if (updateUrl) history.replaceState(null, "", lang === "ru" ? "#ru" : location.pathname + location.search);
+    };
+    root.querySelector<HTMLElement>("[data-langs]")!.hidden = false;
+    buttons.forEach((b) => b.addEventListener("click", () => show(b.dataset.langBtn!, true)));
+    const fromUrl = () => show(location.hash === "#ru" ? "ru" : "en", false);
+    window.addEventListener("hashchange", fromUrl);
+    fromUrl();
+  }
+</script>

@@ -7,6 +7,17 @@ RewriteEngine On
 # Проверка Let's Encrypt должна дойти до хостинга, иначе сертификат не выпустится.
 RewriteRule ^\.well-known/acme-challenge/ - [L]
 
+# Токен бота и почта для заявок (пишет deploy-hosting.sh) — только для api/order.php, не по ссылке.
+<Files "order-config.php">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>
+
 # Главный адрес — без www.
 RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
 RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]

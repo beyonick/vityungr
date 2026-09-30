@@ -8,6 +8,7 @@ const year = new Date().getFullYear();
 <footer class="ftr section" id="contact" aria-labelledby="contact-title">
   <SectionHead n="07" label="Contact" aside="Questions, orders, shipping" title="Write to me" titleId="contact-title">
     <p>I answer every message myself, usually within a couple of days.</p>
+    <p>To buy a painting, send a <a class="ulink" href="/order">request</a>: I’ll reply by email.</p>
     <p><a class="ftr__mail serif" href={`mailto:${site.email}`}>{site.email}</a></p>
   </SectionHead>
 
@@ -37,11 +38,16 @@ const year = new Date().getFullYear();
       <p class="label muted">Studio</p>
       <p>{site.location}</p>
       <p class="muted">Packed within 1–3 working days</p>
+      <p><a class="tlink" href="/shipping">Shipping and FAQ</a></p>
     </div>
   </div>
 
   <div class="ftr__base pad label muted">
     <span>© {year} {site.fullName}</span>
+    <span class="ftr__legal">
+      <a href="/privacy">Privacy policy</a>
+      <a href="/consent">Consent to data processing</a>
+    </span>
     <a href="#top">Back to top ↑</a>
   </div>
 </footer>
@@ -101,6 +107,27 @@ const year = new Date().getFullYear();
 
   .ftr__base a {
     color: var(--ink);
+  }
+
+  .ftr__legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 24px;
+  }
+
+  .ftr__legal a {
+    color: var(--ink-2);
+    transition: color 0.3s var(--ease-soft);
+  }
+
+  .ftr__legal a:hover {
+    color: var(--ink);
+  }
+
+  @media (max-width: 599px) {
+    .ftr__base {
+      flex-direction: column;
+    }
   }
 
   @media (max-width: 1099px) {

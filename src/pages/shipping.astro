@@ -1,0 +1,351 @@
+---
+// Доставка и вопросы. Как устроен заказ, упаковка, США и Канада, условия принтов — со старого сайта
+// (vityungr.website/orderdelivery, /prints, /sale). Стоимость доставки оригиналов, таможня, бронь
+// и возврат — черновики: на старом сайте их не было, сверить с Витей.
+import SectionHead from "../components/SectionHead.astro";
+import Base from "../layouts/Base.astro";
+import { printClub, site } from "../data/site";
+
+const steps = [
+  {
+    title: "You send a request",
+    text: "Choose a painting and send a request from its page. It doesn’t require payment. Please double-check your email: that’s where I’ll reply.",
+  },
+  {
+    title: "We agree on the details",
+    text: "I write to you personally, usually within a couple of days, to confirm the address, shipping, currency and payment method, whatever works best for you.",
+  },
+  {
+    title: "I pack and ship",
+    text: "Once the payment is done, I prepare your parcel within 1–3 working days. Every piece is carefully wrapped by hand and sent as soon as possible.",
+  },
+];
+
+// html — свои тексты, без пользовательского ввода
+const groups = [
+  {
+    label: "Shipping",
+    items: [
+      {
+        q: "Where do you ship?",
+        a: "Worldwide. The only exception for now is the US and Canada: I can’t send originals and large posters there yet, and I’m working on it. Small prints (9 × 12 in and A4) and Print Club prints do go to the US and Canada.",
+      },
+      {
+        q: "How much does shipping cost?",
+        a: "For originals it depends on the size of the painting and the country. I’ll tell you the exact cost before you pay. Shipping for prints is free worldwide.",
+      },
+      {
+        q: "How long does delivery take?",
+        a: "I pack every order within 1–3 working days after payment. After that it depends on your country and the postal service. I’ll email you when the parcel is on its way.",
+      },
+      {
+        q: "How are paintings packed?",
+        a: "Every piece is carefully wrapped by hand before it goes to the post office.",
+      },
+    ],
+  },
+  {
+    label: "Payment",
+    items: [
+      {
+        q: "Do I pay when I send a request?",
+        a: "No. A request doesn’t commit you to anything. I’ll email you, and you pay only when we’ve agreed on everything.",
+      },
+      {
+        q: "How can I pay?",
+        a: "We choose together by email: the currency and the payment method that work best for you.",
+      },
+      {
+        q: "Can you hold a painting for me?",
+        a: "Yes. While we’re agreeing on the details, I mark the painting as reserved, so nobody else can request it.",
+      },
+    ],
+  },
+  {
+    label: "Customs",
+    items: [
+      {
+        q: "Will I have to pay customs duties?",
+        a: "Parcels go from Montenegro, which is not in the EU. Depending on your country’s rules, customs may charge import duty or VAT on delivery; this is paid by the recipient. If you’re not sure, ask me before ordering.",
+      },
+    ],
+  },
+  {
+    label: "Returns",
+    items: [
+      {
+        q: "What if the painting arrives damaged?",
+        a: "Write to me as soon as you can, ideally within a few days of delivery, and attach photos of the parcel and the damage. We’ll sort it out together: I’ll refund you or find another solution.",
+      },
+      {
+        q: "Can I return a painting?",
+        a: "Yes, within 14 days of delivery, if it’s in the same condition. Write to me first. Return shipping is paid by the buyer, and I refund the price of the painting once it’s back with me.",
+      },
+    ],
+  },
+  {
+    label: "Prints and Print Club",
+    items: [
+      {
+        q: "What are the prints like?",
+        a: "Every print is hand-signed and numbered, on 200–240 gsm matte or semi-matte paper. They come with white borders, since every painting has its own proportions.",
+      },
+      {
+        q: "What is a limited batch?",
+        a: "Some prints are made in batches of five pieces. When a batch is gone, it sometimes comes back in stock, again only five.",
+      },
+      {
+        q: "How does the Print Club work?",
+        a: `Every month I choose the best painting I made from life, and members get a signed, limited 5 × 7 print of it by mail. You can join through <a href="${printClub.patreon}" target="_blank" rel="noopener">Patreon</a> (with bonus content), <a href="${printClub.paypal}" target="_blank" rel="noopener">PayPal</a> or <a href="${printClub.boosty}" target="_blank" rel="noopener">Boosty</a>, and cancel there at any time.`,
+      },
+    ],
+  },
+  {
+    label: "Your details",
+    items: [
+      {
+        q: "What do you do with my details?",
+        a: `I use them only to answer your request and to ship the painting. Nothing goes to advertisers. See the <a href="/privacy">privacy policy</a>.`,
+      },
+    ],
+  },
+];
+---
+
+<Base
+  title="Shipping and FAQ"
+  description="How ordering a painting from Vityungr works: requests without payment, packing, worldwide shipping, customs, returns, prints and the Print Club."
+>
+  <section class="faq" aria-labelledby="faq-title">
+    <SectionHead
+      n="—"
+      label="Help"
+      aside="Originals · Prints · Print Club"
+      title="Shipping and questions"
+      titleId="faq-title"
+      level={1}
+    >
+      <p>How ordering works, where I ship, and what happens if something goes wrong.</p>
+      <p>
+        Didn’t find your answer? Write to me at <a class="ulink" href={`mailto:${site.email}`}>{site.email}</a>.
+      </p>
+    </SectionHead>
+
+    <!-- Как устроен заказ -->
+    <div class="faq__row" data-reveal="text">
+      <h2 class="faq__label label"><span class="faq__n num">01</span>How it works</h2>
+      <ol class="faq__steps">
+        {
+          steps.map((s, i) => (
+            <li>
+              <span class="label num faq__step-n">0{i + 1}</span>
+              <div>
+                <h3 class="faq__step display">{s.title}</h3>
+                <p class="muted">{s.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="faq__cta">
+        <a class="faq__btn" href="/works">
+          <span>See available works</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </p>
+    </div>
+
+    <!-- Вопросы -->
+    {
+      groups.map((g, i) => (
+        <div class="faq__row" data-reveal="text">
+          <h2 class="faq__label label">
+            <span class="faq__n num">{String(i + 2).padStart(2, "0")}</span>
+            {g.label}
+          </h2>
+          <div class="faq__list">
+            {g.items.map((item) => (
+              <details class="faq__item">
+                <summary>
+                  <span>{item.q}</span>
+                  <span class="faq__icon" aria-hidden="true" />
+                </summary>
+                <p class="faq__answer" set:html={item.a} />
+              </details>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+  </section>
+</Base>
+
+<style>
+  .faq {
+    padding-top: clamp(120px, 16vh, 180px);
+  }
+
+  /* Ряд: слева номер и тема, справа содержимое — как шаги формы заявки */
+  .faq__row {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(16px, 1.8vw, 28px);
+    margin-inline: var(--gutter);
+    padding: 14px 0 clamp(44px, 5vw, 72px);
+    border-top: 1px solid var(--line);
+  }
+
+  .faq__label {
+    grid-column: 1 / span 3;
+    font-weight: 540;
+  }
+
+  .faq__n {
+    display: inline-block;
+    min-width: 3em;
+    color: var(--ink-3);
+  }
+
+  .faq__steps,
+  .faq__list,
+  .faq__cta {
+    grid-column: 4 / -1;
+    max-width: 860px;
+  }
+
+  /* ---------- Шаги ---------- */
+  .faq__steps li {
+    display: grid;
+    grid-template-columns: clamp(48px, 5vw, 80px) minmax(0, 1fr);
+    padding-block: clamp(18px, 2.2vw, 28px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .faq__steps li:first-child {
+    padding-top: 0;
+  }
+
+  .faq__step-n {
+    padding-top: 0.9em;
+    color: var(--ink-3);
+  }
+
+  .faq__step {
+    margin-bottom: 8px;
+    font-size: clamp(1.5rem, 1rem + 1.6vw, 2.5rem);
+    line-height: 1.05;
+  }
+
+  .faq__steps p {
+    max-width: 52ch;
+    font-size: 1rem;
+  }
+
+  .faq__cta {
+    margin-top: clamp(24px, 2.6vw, 36px);
+  }
+
+  .faq__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 52px;
+    padding: 0 28px;
+    border: 1px solid var(--ink);
+    border-radius: 999px;
+    font-size: var(--t-text);
+    transition:
+      background-color 0.35s var(--ease-soft),
+      color 0.35s var(--ease-soft);
+  }
+
+  .faq__btn:hover {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  /* ---------- Вопросы ---------- */
+  .faq__item {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .faq__item:first-child summary {
+    padding-top: 0;
+  }
+
+  .faq__item summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 24px;
+    padding-block: 16px;
+    font-size: 1rem;
+    line-height: 1.4;
+    cursor: pointer;
+    list-style: none;
+    transition: color 0.3s var(--ease-soft);
+  }
+
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__item summary:hover {
+    color: var(--ink-2);
+  }
+
+  /* плюс, который становится минусом */
+  .faq__icon {
+    position: relative;
+    flex: none;
+    width: 12px;
+    height: 12px;
+  }
+
+  .faq__icon::before,
+  .faq__icon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 12px;
+    height: 1px;
+    background: currentColor;
+    transition: transform 0.4s var(--ease-out);
+  }
+
+  .faq__icon::after {
+    transform: rotate(90deg);
+  }
+
+  .faq__item[open] .faq__icon::after {
+    transform: rotate(0deg);
+  }
+
+  .faq__answer {
+    max-width: 62ch;
+    padding-bottom: 20px;
+    color: var(--ink-2);
+    font-size: var(--t-text);
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  .faq__answer :global(a) {
+    color: var(--ink);
+    background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  }
+
+  @media (max-width: 859px) {
+    .faq__label,
+    .faq__steps,
+    .faq__list,
+    .faq__cta {
+      grid-column: 1 / -1;
+    }
+
+    .faq__label {
+      margin-bottom: 20px;
+    }
+  }
+</style>

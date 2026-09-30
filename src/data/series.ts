@@ -5,12 +5,21 @@ export type Series = {
   slug: string; // совпадает с папкой в src/assets/works/originals/<slug>
   title: string;
   places: string;
-  years: string;
+  years: string; // может быть пустым
   cover: string; // папка работы-обложки внутри серии
   intro: string;
 };
 
 export const series: Series[] = [
+  // Не место, а свежие работы: на старом сайте они были только в «Available works». На главную не идёт.
+  {
+    slug: "new",
+    title: "New works",
+    places: "Fresh from the easel",
+    years: "",
+    cover: "fields",
+    intro: "The most recent paintings, before they settle into a series of their own.",
+  },
   {
     slug: "montenegro",
     title: "Montenegro",
@@ -116,3 +125,9 @@ export const fieldNotes = [
     text: "My friend who lives here says the entire village is his family. Except for two beekeepers.",
   },
 ];
+
+export function seriesBySlug(slug: string): Series {
+  const s = series.find((x) => x.slug === slug);
+  if (!s) throw new Error(`Series not found: ${slug}`);
+  return s;
+}

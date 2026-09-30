@@ -1,0 +1,866 @@
+---
+// Форма заявки на картину. Оплаты на сайте нет: заявка уходит Вите в Telegram и на почту
+// (public/api/order.php), дальше он пишет покупателю сам.
+//
+// 01 — какая картина: миниатюры всех работ в продаже, это радиокнопки — выбор работает и без JS.
+//      С JS выбранная картина показывается крупно, остальные прячутся до «Change».
+//      /order?work=<серия>/<папка> открывает форму с уже выбранной картиной.
+// 02 — контакты. 03 — согласие на обработку данных и отправка.
+//
+// На странице работы (work={…}) картина уже выбрана: вместо миниатюр — она сама и ссылка на /order.
+import { getImage } from "astro:assets";
+import { operator, site } from "../data/site";
+import { galleryOrder, loadImage, mediumSize, orderId, priceOrState, ratioOf, type Work } from "../lib/works";
+
+interface Props {
+  work?: Work;
+}
+
+const { work } = Astro.props;
+const toItem = async (w: Work) => {
+  const image = await loadImage(w.images[0].src);
+  const [thumb, large] = await Promise.all(
+    [360, 800].map((width) => getImage({ src: image, width: Math.min(width, image.width), format: "webp", quality: 80 })),
+  );
+  return { w, id: orderId(w), r: ratioOf(w), thumb: thumb.src, large: large.src };
+};
+const fixed = work ? await toItem(work) : null;
+const works = work ? [] : await Promise.all(galleryOrder().map(toItem));
+
+// Страны — по-английски, как их называет браузер; код нужен для подсказки про США и Канаду
+const codes =
+  "AD AE AF AG AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MO MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PR PS PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS XK YE ZA ZM ZW";
+const regionName = new Intl.DisplayNames(["en"], { type: "region" });
+const countries = codes
+  .split(" ")
+  .map((code) => ({ code, name: regionName.of(code) ?? code }))
+  .sort((a, b) => a.name.localeCompare(b.name, "en"));
+---
+
+<form class="of" action="/api/order.php" method="post" novalidate data-order>
+  <!-- 01 Картина -->
+  <fieldset class="of__row" aria-describedby={fixed ? undefined : "work-hint"} data-reveal="text">
+    <legend class="of__legend label"><span class="of__n num">01</span>Painting</legend>
+    {
+      fixed ? (
+        <div class="of__body">
+          <input type="hidden" name="work" value={fixed.id} data-title={fixed.w.title} data-fixed />
+          <figure class="of__art of__art--fixed">
+            <span class="of__frame">
+              <img src={fixed.thumb} alt="" width="360" height={Math.round(360 / fixed.r)} loading="lazy" decoding="async" />
+            </span>
+            <figcaption class="of__cap">
+              <p class="of__title serif">{fixed.w.title}</p>
+              <p class="muted">{mediumSize(fixed.w)}</p>
+              <p class="of__price num">{priceOrState(fixed.w)}</p>
+              <a class="of__change tlink" href="/order">Choose another painting</a>
+            </figcaption>
+          </figure>
+        </div>
+      ) : (
+        <div class="of__body">
+          <div class="of__chosen" hidden data-chosen>
+            <figure class="of__art">
+              <span class="of__frame"><img alt="" data-chosen-img /></span>
+              <figcaption class="of__cap">
+                <p class="of__title serif" data-chosen-title></p>
+                <p class="muted" data-chosen-meta></p>
+                <p class="of__price num" data-chosen-price></p>
+                <button class="of__change tlink" type="button" data-change>Choose another painting</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <div class="of__pick" data-pick>
+            <p class="of__hint muted" id="work-hint" data-pick-hint>
+              Choose one of the paintings available now. Want several? Pick one and list the others in the message.
+            </p>
+            <p class="of__warn" hidden data-gone>
+              That painting has just been sold or reserved. Choose another one, or write to me about something similar.
+            </p>
+            <div class="of__grid">
+              {
+                works.map(({ w, id, r, thumb, large }) => (
+                  <label class="of__thumb" style={`--r:${r.toFixed(4)}`} title={w.title}>
+                    <input
+                      class="sr-only"
+                      type="radio"
+                      name="work"
+                      value={id}
+                      required
+                      data-title={w.title}
+                      data-meta={mediumSize(w)}
+                      data-price={priceOrState(w)}
+                      data-large={large}
+                      data-ratio={r.toFixed(4)}
+                    />
+                    <img src={thumb} alt="" width="360" height={Math.round(360 / r)} loading="lazy" decoding="async" />
+                    <span class="sr-only">
+                      {w.title}, {mediumSize(w)}, {priceOrState(w)}
+                    </span>
+                  </label>
+                ))
+              }
+              <label class="of__thumb of__thumb--other">
+                <input class="sr-only" type="radio" name="work" value="other" required data-title="Something else" />
+                <span class="of__other-text">Something else</span>
+              </label>
+            </div>
+            <p class="of__peek" aria-hidden="true" data-peek-line>&nbsp;</p>
+          </div>
+          <p class="of__error" id="err-work" hidden data-error="work">Choose a painting, or “Something else”.</p>
+        </div>
+      )
+    }
+  </fieldset>
+
+  <!-- 02 Контакты -->
+  <fieldset class="of__row" data-reveal="text">
+    <legend class="of__legend label"><span class="of__n num">02</span>About you</legend>
+    <div class="of__body of__fields">
+      <div class="of__field">
+        <label class="of__label label" for="of-name">Name</label>
+        <input class="of__input" id="of-name" name="name" type="text" autocomplete="name" maxlength="100" required aria-describedby="err-name" />
+        <p class="of__error" id="err-name" hidden data-error="name">Tell me how to address you.</p>
+      </div>
+
+      <div class="of__field">
+        <label class="of__label label" for="of-email">Email</label>
+        <input class="of__input" id="of-email" name="email" type="email" autocomplete="email" inputmode="email" maxlength="200" required aria-describedby="of-email-hint err-email" />
+        <p class="of__note muted" id="of-email-hint">I’ll reply here.</p>
+        <p class="of__error" id="err-email" hidden data-error="email">This doesn’t look like an email address.</p>
+      </div>
+
+      <div class="of__field">
+        <label class="of__label label" for="of-country">Ship to</label>
+        <select class="of__input of__select" id="of-country" name="country" autocomplete="country-name" required aria-describedby="of-country-hint err-country" data-country>
+          <option value="">Country</option>
+          {countries.map((c) => <option value={c.name} data-code={c.code}>{c.name}</option>)}
+        </select>
+        <p class="of__note muted" id="of-country-hint" data-country-hint>
+          I ship worldwide and pack every order by hand within 1–3 working days.{" "}
+          <a class="ulink" href="/shipping" target="_blank">Shipping and FAQ</a>
+        </p>
+        <p class="of__warn" hidden aria-live="polite" data-country-warn>
+          I can’t ship originals to the US and Canada yet. If you have an address in another country, send the request anyway.
+        </p>
+        <p class="of__error" id="err-country" hidden data-error="country">Where should the painting go?</p>
+      </div>
+
+      <div class="of__field">
+        <label class="of__label label" for="of-contact">Telegram, WhatsApp or phone <span class="of__opt">optional</span></label>
+        <input class="of__input" id="of-contact" name="contact" type="text" autocomplete="off" maxlength="200" />
+      </div>
+
+      <div class="of__field of__field--wide">
+        <label class="of__label label" for="of-message">Message <span class="of__opt" data-message-opt>optional</span></label>
+        <textarea class="of__input of__area" id="of-message" name="message" rows="4" maxlength="3000" aria-describedby="err-message" placeholder="Questions, other paintings you like, a gift note…"></textarea>
+        <p class="of__error" id="err-message" hidden data-error="message">Tell me what you’re looking for.</p>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- 03 Согласие и отправка -->
+  <fieldset class="of__row" data-reveal="text">
+    <legend class="of__legend label"><span class="of__n num">03</span>Send</legend>
+    <div class="of__body">
+      <div class="of__consent">
+        <input class="of__check" id="of-consent" name="consent" type="checkbox" value="yes" required aria-describedby="err-consent" />
+        <label for="of-consent">
+          I consent to the processing of my personal data under the terms of the{" "}
+          <a href="/consent" target="_blank">Consent to personal data processing</a>.
+        </label>
+      </div>
+      <p class="of__error" id="err-consent" hidden data-error="consent">Without your consent I can’t receive the request.</p>
+
+      <!-- ловушка для ботов: людям не видна -->
+      <div class="of__trap" aria-hidden="true">
+        <label>Website <input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
+      </div>
+      <input type="hidden" name="dt" value="" data-dt />
+      <input type="hidden" name="consent_version" value={operator.effective} />
+
+      <div class="of__send">
+        <button class="of__submit" type="submit" data-submit>
+          <span data-submit-label>Send request</span>
+          <span aria-hidden="true">→</span>
+        </button>
+        <p class="of__small muted">
+          This is not a payment. Your details go only to me: see the <a href="/privacy">privacy policy</a>.
+        </p>
+      </div>
+
+      <div class="of__status" role="alert" hidden data-status></div>
+    </div>
+  </fieldset>
+</form>
+
+<!-- Заявка ушла: форма заменяется на это -->
+<div class="of__done" hidden tabindex="-1" data-done>
+  <p class="label muted">Request sent</p>
+  <p class="of__done-title display">Thank you<span data-done-name></span>.</p>
+  <p class="of__done-text">
+    Your request<span data-done-work></span> is on its way to me. I’ll write to you at{" "}
+    <strong data-done-email></strong> within a couple of days to agree on shipping and payment.
+  </p>
+  <p class="of__done-text muted">
+    If nothing arrives, check the spam folder or write to me directly:{" "}
+    <a class="tlink" href={`mailto:${site.email}`}>{site.email}</a>
+  </p>
+  <p class="of__done-links">
+    <a class="tlink" href="/works">Back to the works</a>
+  </p>
+</div>
+
+<style>
+  .of {
+    margin-inline: var(--gutter);
+  }
+
+  /* Ряд: слева номер и название шага, справа содержимое — как шапки разделов */
+  .of__row {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(16px, 1.8vw, 28px);
+    margin: 0;
+    padding: 14px 0 clamp(44px, 5vw, 72px);
+    border: 0;
+    border-top: 1px solid var(--line);
+    min-width: 0;
+  }
+
+  .of__legend {
+    float: left; /* legend иначе не встаёт в сетку */
+    grid-column: 1 / span 3;
+    padding: 0;
+  }
+
+  .of__n {
+    display: inline-block;
+    min-width: 3em;
+    color: var(--ink-3);
+  }
+
+  .of__body {
+    grid-column: 4 / -1;
+    min-width: 0;
+  }
+
+  /* ---------- 01 Картина ---------- */
+  .of__hint {
+    max-width: 52ch;
+    margin-bottom: 20px;
+  }
+
+  .of__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* ряд заполняется, последний не растягивается */
+  .of__grid::after {
+    content: "";
+    flex: 999 1 0;
+  }
+
+  .of__thumb {
+    position: relative;
+    flex: var(--r) 1 calc(var(--r) * clamp(64px, 6.4vw, 92px));
+    aspect-ratio: var(--r);
+    cursor: pointer;
+    box-shadow: var(--shadow-rest);
+    transition:
+      transform 0.45s var(--ease-out),
+      box-shadow 0.45s var(--ease-out);
+  }
+
+  .of__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .of__thumb::after {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border: 1px solid var(--ink);
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-soft);
+    pointer-events: none;
+  }
+
+  .of__thumb:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lift);
+  }
+
+  .of__thumb:has(:checked)::after,
+  .of__thumb:has(:focus-visible)::after {
+    opacity: 1;
+  }
+
+  .of__thumb--other {
+    --r: 1.3;
+    display: grid;
+    place-items: center;
+    padding: 8px;
+    border: 1px dashed rgb(0 0 0 / 0.25);
+    box-shadow: none;
+    text-align: center;
+  }
+
+  .of__other-text {
+    font-size: var(--t-small);
+    line-height: 1.25;
+  }
+
+  .of__peek {
+    margin-top: 16px;
+    min-height: 1.6em;
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-size: var(--t-title);
+  }
+
+  /* выбранная картина крупно */
+  .of__art {
+    display: flex;
+    align-items: flex-end;
+    gap: clamp(20px, 2.4vw, 36px);
+  }
+
+  .of__frame {
+    display: block;
+    flex: none;
+    box-shadow: var(--shadow-lift);
+  }
+
+  .of__frame img {
+    height: clamp(220px, 26vw, 380px);
+    width: auto;
+    max-width: min(100%, 60vw);
+    object-fit: contain;
+  }
+
+  .of__cap {
+    min-width: 0;
+    font-size: var(--t-small);
+  }
+
+  .of__title {
+    font-size: clamp(1.25rem, 1rem + 0.8vw, 1.75rem);
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+
+  .of__price {
+    margin-top: 2px;
+    font-size: var(--t-text);
+  }
+
+  .of__change {
+    margin-top: 14px;
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: var(--t-small);
+  }
+
+  .of__change::after {
+    content: "↺";
+  }
+
+  .of__art--fixed .of__change::after {
+    content: "→";
+  }
+
+  .of__art--fixed .of__frame img {
+    height: clamp(110px, 10vw, 150px);
+  }
+
+  /* ---------- 02 Контакты ---------- */
+  .of__fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(26px, 3vw, 40px) clamp(16px, 1.8vw, 28px);
+    max-width: 820px;
+  }
+
+  .of__field--wide {
+    grid-column: 1 / -1;
+  }
+
+  .of__label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--ink-2);
+  }
+
+  .of__opt {
+    margin-left: 0.5em;
+    color: var(--ink-3);
+  }
+
+  .of__input {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 0;
+    border: 0;
+    border-bottom: 1px solid rgb(0 0 0 / 0.28);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 1rem; /* 16px — iOS не увеличивает страницу при фокусе */
+    line-height: 1.5;
+    transition: border-color 0.3s var(--ease-soft);
+  }
+
+  .of__input:hover {
+    border-bottom-color: rgb(0 0 0 / 0.5);
+  }
+
+  .of__input:focus-visible {
+    outline: none;
+    border-bottom-color: var(--ink);
+    box-shadow: 0 1px 0 var(--ink);
+  }
+
+  .of__input::placeholder {
+    color: var(--ink-3);
+  }
+
+  .of__input[aria-invalid="true"] {
+    border-bottom-color: var(--error);
+    box-shadow: 0 1px 0 var(--error);
+  }
+
+  .of__select {
+    appearance: none;
+    padding-right: 28px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23151515' stroke-width='1.2'%3E%3Cpath d='m1 1.5 5 5 5-5'/%3E%3C/svg%3E") no-repeat right 4px center;
+    cursor: pointer;
+  }
+
+  .of__select:has(option[value=""]:checked) {
+    color: var(--ink-3);
+  }
+
+  .of__select option {
+    color: var(--ink);
+  }
+
+  .of__area {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .of__note,
+  .of__warn,
+  .of__error {
+    margin-top: 8px;
+    font-size: var(--t-small);
+    line-height: 1.45;
+  }
+
+  .of__warn {
+    color: var(--ink);
+    padding-left: 12px;
+    border-left: 1px solid var(--ink);
+    max-width: 52ch;
+  }
+
+  .of__pick .of__warn {
+    margin: 0 0 20px;
+  }
+
+  .of__error {
+    color: var(--error);
+  }
+
+  /* ---------- 03 Отправка ---------- */
+  .of__consent {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    max-width: 60ch;
+    font-size: var(--t-text);
+    line-height: 1.5;
+  }
+
+  .of__consent a,
+  .of__small a {
+    background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  }
+
+  .of__check {
+    flex: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    margin: 1px 0 0;
+    border: 1px solid rgb(0 0 0 / 0.4);
+    border-radius: 0;
+    background: var(--bg);
+    cursor: pointer;
+    transition:
+      background-color 0.2s var(--ease-soft),
+      border-color 0.2s var(--ease-soft);
+  }
+
+  .of__check:checked {
+    border-color: var(--ink);
+    background: var(--ink)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' fill='none' stroke='%23fff' stroke-width='1.6'%3E%3Cpath d='m1 5 3.5 3.5L11 1.5'/%3E%3C/svg%3E")
+      no-repeat center;
+  }
+
+  .of__check[aria-invalid="true"] {
+    border-color: var(--error);
+  }
+
+  .of__consent label {
+    cursor: pointer;
+  }
+
+  .of__trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .of__send {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 28px;
+    margin-top: clamp(28px, 3vw, 40px);
+  }
+
+  .of__submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 56px;
+    padding: 0 32px;
+    border: 1px solid var(--ink);
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: var(--t-text);
+    cursor: pointer;
+    transition:
+      background-color 0.35s var(--ease-soft),
+      color 0.35s var(--ease-soft);
+  }
+
+  .of__submit:hover {
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  .of__submit[aria-busy="true"] {
+    cursor: progress;
+    opacity: 0.6;
+  }
+
+  .of__small {
+    max-width: 44ch;
+    font-size: var(--t-small);
+  }
+
+  .of__status {
+    margin-top: 24px;
+    padding: 14px 16px;
+    max-width: 60ch;
+    border: 1px solid var(--error);
+    color: var(--ink);
+    font-size: var(--t-text);
+  }
+
+  .of__status a {
+    background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  }
+
+  /* ---------- Готово ---------- */
+  .of__done {
+    margin-inline: var(--gutter);
+    padding: 14px 0 clamp(40px, 5vw, 72px);
+    border-top: 1px solid var(--line);
+    outline: none;
+    max-width: 760px;
+  }
+
+  .of__done-title {
+    margin: clamp(20px, 2.4vw, 36px) 0 20px;
+    font-size: var(--t-h2);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .of__done-text {
+    max-width: 52ch;
+    font-size: 1rem;
+  }
+
+  .of__done-text + .of__done-text {
+    margin-top: 0.8em;
+    font-size: var(--t-text);
+  }
+
+  .of__done-links {
+    margin-top: 28px;
+    font-size: var(--t-small);
+  }
+
+  @media (max-width: 859px) {
+    .of__legend {
+      grid-column: 1 / -1;
+      margin-bottom: 20px;
+    }
+
+    .of__body {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 599px) {
+    .of__fields {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .of__art {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .of__frame img {
+      height: auto;
+      max-height: 60vh;
+      max-width: 100%;
+    }
+
+    .of__submit {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-order]");
+  const done = document.querySelector<HTMLElement>("[data-done]");
+
+  if (form && done) {
+    const $ = <T extends HTMLElement>(sel: string) => form.querySelector<T>(sel)!;
+    // на странице работы картина уже выбрана (скрытое поле), на /order — радиокнопки-миниатюры
+    const fixedWork = form.querySelector<HTMLInputElement>("[data-fixed]");
+    const radios = Array.from(form.querySelectorAll<HTMLInputElement>('input[type="radio"][name="work"]'));
+    const chosen = form.querySelector<HTMLElement>("[data-chosen]");
+    const pick = form.querySelector<HTMLElement>("[data-pick]");
+    const chosenImg = form.querySelector<HTMLImageElement>("[data-chosen-img]");
+    const peekLine = form.querySelector<HTMLElement>("[data-peek-line]");
+    const country = $<HTMLSelectElement>("[data-country]");
+    const countryWarn = $<HTMLElement>("[data-country-warn]");
+    const message = $<HTMLTextAreaElement>("#of-message");
+    const messageOpt = $<HTMLElement>("[data-message-opt]");
+    const submit = $<HTMLButtonElement>("[data-submit]");
+    const submitLabel = $<HTMLElement>("[data-submit-label]");
+    const status = $<HTMLElement>("[data-status]");
+    const started = performance.now();
+    const siteEmail = done.querySelector<HTMLAnchorElement>('a[href^="mailto:"]')!.textContent ?? "";
+
+    // ---------- 01: выбранная картина крупно ----------
+    const current = () => fixedWork ?? radios.find((r) => r.checked) ?? null;
+    const params = new URLSearchParams(location.search);
+
+    if (chosen && pick && chosenImg && peekLine) {
+      const showChosen = (r: HTMLInputElement | null) => {
+        const isWork = !!r && r.value !== "other";
+        chosen.hidden = !isWork;
+        pick.hidden = isWork;
+        messageOpt.hidden = r?.value === "other";
+        message.required = r?.value === "other";
+        if (!isWork || !r) return;
+        chosenImg.src = r.dataset.large ?? "";
+        chosenImg.alt = r.dataset.title ?? "";
+        chosenImg.style.aspectRatio = r.dataset.ratio ?? "";
+        $("[data-chosen-title]").textContent = r.dataset.title ?? "";
+        $("[data-chosen-meta]").textContent = r.dataset.meta ?? "";
+        $("[data-chosen-price]").textContent = r.dataset.price ?? "";
+      };
+
+      radios.forEach((r) => {
+        r.addEventListener("change", () => {
+          clearError("work");
+          showChosen(r);
+          const url = new URL(location.href);
+          url.searchParams.set("work", r.value);
+          url.searchParams.delete("error");
+          history.replaceState(null, "", url);
+        });
+        // название под миниатюрами при наведении
+        const label = r.closest("label")!;
+        const say = () => (peekLine.textContent = [r.dataset.title, r.dataset.price].filter(Boolean).join(" · "));
+        label.addEventListener("pointerenter", say);
+        r.addEventListener("focus", say);
+        label.addEventListener("pointerleave", () => (peekLine.innerHTML = "&nbsp;"));
+      });
+
+      $("[data-change]").addEventListener("click", () => {
+        chosen.hidden = true;
+        pick.hidden = false;
+        (current() ?? radios[0]).focus();
+      });
+
+      const wanted = params.get("work");
+      if (wanted) {
+        const r = radios.find((x) => x.value === wanted);
+        if (r) {
+          r.checked = true;
+          showChosen(r);
+        } else {
+          $("[data-gone]").hidden = false;
+        }
+      } else if (current()) {
+        showChosen(current()); // браузер вернул выбор после «Назад»
+      }
+
+      // «Ask about a similar painting» со страницы проданной работы: /order?work=other&like=<название>
+      const like = params.get("like");
+      if (like && !message.value) message.value = `I like “${like}”. Do you have something similar?`;
+    }
+
+    // ---------- 02: США и Канада ----------
+    const checkCountry = () => {
+      const code = country.selectedOptions[0]?.dataset.code;
+      countryWarn.hidden = code !== "US" && code !== "CA";
+    };
+    country.addEventListener("change", checkCountry);
+    checkCountry();
+
+    // ---------- Проверка полей ----------
+    const errorEl = (name: string) => form.querySelector<HTMLElement>(`[data-error="${name}"]`);
+    const fieldEl = (name: string) =>
+      name === "work" ? null : form.querySelector<HTMLInputElement>(`[name="${name}"]`);
+
+    function clearError(name: string) {
+      const e = errorEl(name);
+      if (e) e.hidden = true;
+      fieldEl(name)?.removeAttribute("aria-invalid");
+    }
+
+    const setError = (name: string) => {
+      const e = errorEl(name);
+      if (e) e.hidden = false;
+      fieldEl(name)?.setAttribute("aria-invalid", "true");
+    };
+
+    const invalidFields = () => {
+      const bad: string[] = [];
+      if (!current()) bad.push("work");
+      if (!(form.elements.namedItem("name") as HTMLInputElement).value.trim()) bad.push("name");
+      const mail = (form.elements.namedItem("email") as HTMLInputElement).value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) bad.push("email");
+      if (!country.value) bad.push("country");
+      if (message.required && !message.value.trim()) bad.push("message");
+      if (!(form.elements.namedItem("consent") as HTMLInputElement).checked) bad.push("consent");
+      return bad;
+    };
+
+    const focusFirst = (bad: string[]) => {
+      const first = bad[0];
+      if (first === "work" && chosen && pick) {
+        if (pick.hidden) {
+          chosen.hidden = true;
+          pick.hidden = false;
+        }
+        radios[0].focus();
+      } else fieldEl(first)?.focus();
+    };
+
+    form.addEventListener("input", (e) => {
+      const name = (e.target as HTMLInputElement).name;
+      if (name) clearError(name);
+    });
+    form.addEventListener("change", (e) => {
+      const name = (e.target as HTMLInputElement).name;
+      if (name) clearError(name);
+    });
+
+    // ---------- Отправка ----------
+    const messages: Record<string, string> = {
+      invalid: "Please check the highlighted fields.",
+      rate: `Too many requests from your connection. Try again in an hour, or write to me at <a href="mailto:${siteEmail}">${siteEmail}</a>.`,
+      default: `Something went wrong on my side and the request didn’t reach me. Please write to me at <a href="mailto:${siteEmail}">${siteEmail}</a> — sorry about that.`,
+    };
+
+    const showStatus = (code: string) => {
+      status.innerHTML = messages[code] ?? messages.default;
+      status.hidden = false;
+    };
+
+    // вернулись без JS-отправки с ошибкой (?error=…)
+    const returned = params.get("error");
+    if (returned) showStatus(returned);
+
+    const setBusy = (busy: boolean) => {
+      submit.setAttribute("aria-busy", String(busy));
+      submit.disabled = busy;
+      submitLabel.textContent = busy ? "Sending…" : "Send request";
+    };
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      status.hidden = true;
+      const bad = invalidFields();
+      form.querySelectorAll<HTMLElement>("[data-error]").forEach((el) => clearError(el.dataset.error!));
+      if (bad.length) {
+        bad.forEach(setError);
+        focusFirst(bad);
+        return;
+      }
+
+      $<HTMLInputElement>("[data-dt]").value = ((performance.now() - started) / 1000).toFixed(1);
+      setBusy(true);
+      try {
+        const res = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) {
+          const r = current();
+          const name = (form.elements.namedItem("name") as HTMLInputElement).value.trim();
+          done.querySelector("[data-done-name]")!.textContent = name ? `, ${name.split(" ")[0]}` : "";
+          done.querySelector("[data-done-work]")!.textContent =
+            r && r.value !== "other" ? ` for “${r.dataset.title}”` : "";
+          done.querySelector("[data-done-email]")!.textContent = (
+            form.elements.namedItem("email") as HTMLInputElement
+          ).value.trim();
+          form.hidden = true;
+          done.hidden = false;
+          done.focus({ preventScroll: true });
+          done.scrollIntoView({ block: "start", behavior: "smooth" });
+          return;
+        }
+        if (data.error === "invalid" && Array.isArray(data.fields) && data.fields.length) {
+          data.fields.forEach((f: string) => setError(f));
+          focusFirst(data.fields);
+        }
+        showStatus(data.error ?? "default");
+      } catch {
+        showStatus("default");
+      } finally {
+        setBusy(false);
+      }
+    });
+  }
+</script>

@@ -1,0 +1,113 @@
+---
+// Согласие на обработку персональных данных — отдельным документом, как требует ч. 1 ст. 9 152-ФЗ
+// (с 01.09.2025 согласие нельзя совмещать с другими документами). На него ссылается галочка в форме
+// заявки; редакцию (operator.effective) форма отправляет вместе с заявкой.
+import LegalDoc from "../components/LegalDoc.astro";
+import Base from "../layouts/Base.astro";
+import { operator } from "../data/site";
+
+const host = new URL(Astro.site!).host;
+const url = `https://${host}`;
+const mail = operator.email;
+---
+
+<Base title="Consent to personal data processing" description="The consent you give when sending a request on the Vityungr website.">
+  <LegalDoc other={{ href: "/privacy", en: "Privacy policy", ru: "Политика обработки персональных данных" }}>
+    <Fragment slot="en">
+      <h1>Consent to personal data processing</h1>
+      <p class="lede">
+        By sending a request on <a href={url}>{host}</a> (the “Site”) and ticking the box “I consent to the processing of my
+        personal data”, I freely, of my own will and in my own interest, give my consent to{" "}
+        <strong>{operator.nameEn}</strong> (the “Operator”), contact: <a href={`mailto:${mail}`}>{mail}</a>, to process my
+        personal data on the following terms.
+      </p>
+      <ol class="legal-list">
+        <li>
+          <strong>Personal data:</strong> name; email address; country of delivery; Telegram username, WhatsApp or phone
+          number (if given); the text of my message; the work I chose; IP address, browser details, date and time the
+          request was sent.
+        </li>
+        <li>
+          <strong>Purposes:</strong> answering my request; agreeing on the price, payment and delivery; concluding and
+          performing a contract for the sale of the work; confirming that consent was given.
+        </li>
+        <li>
+          <strong>Actions:</strong> collection, recording, systematisation, accumulation, storage, clarification
+          (updating, changing), retrieval, use, transfer (provision, access), blocking, deletion, destruction. Processing
+          is both automated and manual.
+        </li>
+        <li>
+          <strong>Transfer to third parties:</strong> to the hosting provider Timeweb (Russia), for storing the request; to
+          Telegram and Google (Gmail), for delivering the request to the Operator and for correspondence with me.
+        </li>
+        <li>
+          <strong>Cross-border transfer:</strong> I agree that my personal data may be transferred outside the Russian
+          Federation: to the Operator in Montenegro and to the servers of Telegram and Google, including in countries that
+          do not ensure adequate protection of data subjects’ rights.
+        </li>
+        <li>
+          <strong>Term:</strong> this consent is valid until the purposes of processing are achieved or until I withdraw
+          it. The copy of my request on the server is deleted automatically after 12 months.
+        </li>
+        <li>
+          <strong>Withdrawal:</strong> I can withdraw this consent at any time by writing to{" "}
+          <a href={`mailto:${mail}`}>{mail}</a>. The Operator then stops processing and destroys my data within 30 days,
+          unless there is another lawful ground to keep it (for example, a concluded contract).
+        </li>
+        <li>
+          I have read the <a href="/privacy">Privacy policy</a>, which describes how my data is processed and what rights I
+          have.
+        </li>
+      </ol>
+    </Fragment>
+
+    <Fragment slot="ru">
+      <h1>Согласие на обработку персональных данных</h1>
+      <p class="lede">
+        Отправляя заявку на сайте <a href={url}>{host}</a> (далее — Сайт) и отмечая поле «I consent to the processing of my
+        personal data», я свободно, своей волей и в своём интересе даю согласие <strong>{operator.nameRuDative}</strong>{" "}
+        (далее — Оператор), адрес для обращений: <a href={`mailto:${mail}`}>{mail}</a>, на обработку моих персональных
+        данных на следующих условиях.
+      </p>
+      <ol class="legal-list">
+        <li>
+          <strong>Персональные данные:</strong> имя; адрес электронной почты; страна доставки; имя пользователя в
+          Telegram, номер WhatsApp или телефона (если указаны); текст сообщения; выбранная работа; IP-адрес, сведения о
+          браузере, дата и время отправки заявки.
+        </li>
+        <li>
+          <strong>Цели обработки:</strong> ответ на мою заявку; согласование стоимости, способа оплаты и доставки;
+          заключение и исполнение договора купли-продажи работы; подтверждение факта получения согласия.
+        </li>
+        <li>
+          <strong>Действия с данными:</strong> сбор, запись, систематизация, накопление, хранение, уточнение (обновление,
+          изменение), извлечение, использование, передача (предоставление, доступ), блокирование, удаление, уничтожение.
+          Способ обработки — смешанный, с использованием средств автоматизации и без них.
+        </li>
+        <li>
+          <strong>Передача третьим лицам:</strong> хостинг-провайдеру Timeweb (Россия) — для хранения заявки; сервисам
+          Telegram и Google (Gmail) — для доставки заявки Оператору и переписки со мной.
+        </li>
+        <li>
+          <strong>Трансграничная передача:</strong> я согласен(на) на передачу моих персональных данных за пределы
+          Российской Федерации — Оператору в Черногорию и на серверы Telegram и Google, в том числе в государства, не
+          обеспечивающие адекватной защиты прав субъектов персональных данных.
+        </li>
+        <li>
+          <strong>Срок действия:</strong> согласие действует до достижения целей обработки или до его отзыва. Копия
+          заявки на сервере удаляется автоматически через 12 месяцев.
+        </li>
+        <li>
+          <strong>Отзыв согласия:</strong> я могу отозвать согласие в любой момент, направив письмо на{" "}
+          <a href={`mailto:${mail}`}>{mail}</a>. После получения отзыва Оператор прекращает обработку и уничтожает мои
+          данные в течение 30 дней, если у него нет иных законных оснований для обработки (например, заключённого
+          договора).
+        </li>
+        <li>
+          Я ознакомлен(а) с <a href="/privacy#ru">Политикой в отношении обработки персональных данных</a>, в которой
+          описаны порядок обработки моих данных и мои права.
+        </li>
+      </ol>
+    </Fragment>
+  </LegalDoc>
+</Base>

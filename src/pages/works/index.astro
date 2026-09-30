@@ -1,9 +1,10 @@
 ---
 // Все работы в продаже
-import SectionHead from "../components/SectionHead.astro";
-import Wall, { type WallItem } from "../components/Wall.astro";
-import Base from "../layouts/Base.astro";
-import { galleryOrder, mediumSize, priceOrState, ratioOf, workHref } from "../lib/works";
+import SectionHead from "../../components/SectionHead.astro";
+import SeriesNav from "../../components/SeriesNav.astro";
+import Wall, { type WallItem } from "../../components/Wall.astro";
+import Base from "../../layouts/Base.astro";
+import { galleryOrder, mediumSize, orderHref, priceOrState, ratioOf, workHref } from "../../lib/works";
 
 const all = galleryOrder();
 const items: WallItem[] = all.map((w) => ({
@@ -14,7 +15,7 @@ const items: WallItem[] = all.map((w) => ({
   title: w.title,
   meta: mediumSize(w),
   price: priceOrState(w),
-  viewLinkLabel: "View and request",
+  order: orderHref(w),
 }));
 ---
 
@@ -25,8 +26,12 @@ const items: WallItem[] = all.map((w) => ({
         Oil sketches on thick primed board and a few tempera paintings on canvas, all signed. Every piece is one of a
         kind; most were painted outdoors, from life.
       </p>
-      <p>Ordering is a request, not a payment: I’ll email you to agree on shipping and how to pay.</p>
+      <p>
+        Ordering is a <a class="ulink" href="/order">request</a>, not a payment: I’ll email you to agree on
+        shipping and how to pay.
+      </p>
     </SectionHead>
+    <SeriesNav />
     <Wall items={items} height={280} />
   </section>
 </Base>

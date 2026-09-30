@@ -173,6 +173,8 @@ const updateHover = () => {
   if (!canHover.matches || !viewer?.hidden) return clearHover();
   const el = pointerX < 0 ? null : document.elementFromPoint(pointerX, pointerY);
   let art = artFrom(el);
+  // крупная картина на странице работы и так видна целиком: не выезжает, только открывается по клику
+  if (art?.hasAttribute("data-art-still")) art = null;
   if (art && hero?.contains(art) && art !== heroArt) {
     heroArt = art;
     const index = art.closest<HTMLElement>("[data-hero-big]")?.dataset.heroBig;
@@ -223,6 +225,7 @@ if (viewer && viewerImg) {
   const meta = viewer.querySelector<HTMLElement>("[data-viewer-meta]")!;
   const link = viewer.querySelector<HTMLAnchorElement>("[data-viewer-link]")!;
   const linkLabel = viewer.querySelector<HTMLElement>("[data-viewer-link-label]")!;
+  const orderLink = viewer.querySelector<HTMLAnchorElement>("[data-viewer-order]")!;
   const closeBtn = viewer.querySelector<HTMLButtonElement>("button[data-viewer-close]")!;
   const backdrop = viewer.querySelector<HTMLElement>(".viewer__backdrop")!;
   const caption = viewer.querySelector<HTMLElement>("[data-viewer-caption]")!;
@@ -260,6 +263,8 @@ if (viewer && viewerImg) {
     link.hidden = !art.dataset.artHref;
     if (art.dataset.artHref) link.href = art.dataset.artHref;
     linkLabel.textContent = art.dataset.artHrefLabel ?? "View the work";
+    orderLink.hidden = !art.dataset.artOrder;
+    if (art.dataset.artOrder) orderLink.href = art.dataset.artOrder;
     viewerImg.style.aspectRatio = String(ratio);
     viewerImg.style.width = `${fit(ratio)}px`;
     loadInto(viewerImg, art, () => source === art);

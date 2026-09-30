@@ -1,6 +1,6 @@
 ---
 import { fieldNotes } from "../../data/series";
-import { findWork, mediumSize, priceOrState, ratioOf, workHref } from "../../lib/works";
+import { findWork, mediumSize, orderHref, priceOrState, ratioOf, workHref } from "../../lib/works";
 import SectionHead from "../SectionHead.astro";
 import Wall, { type WallItem } from "../Wall.astro";
 
@@ -16,6 +16,7 @@ const items: WallItem[] = fieldNotes.map((n) => {
     price: priceOrState(w),
     note: n.text,
     viewMeta: [mediumSize(w), priceOrState(w)].filter(Boolean).join(" · "),
+    order: orderHref(w),
   };
 });
 ---

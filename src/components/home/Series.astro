@@ -4,8 +4,8 @@ import { coverOf, mediumSize, priceOrState, ratioOf, worksIn } from "../../lib/w
 import SectionHead from "../SectionHead.astro";
 import Wall, { type WallItem } from "../Wall.astro";
 
-// Семь серий в две ровные строки: 3 и 4. Москва и поездки на главную не попадают.
-const shown = series.filter((s) => s.slug !== "moscow" && s.slug !== "random");
+// Семь серий в две ровные строки: 3 и 4. Новые работы, Москва и поездки на главную не попадают.
+const shown = series.filter((s) => !["new", "moscow", "random"].includes(s.slug));
 const items: WallItem[] = shown.map((s) => {
   const cover = coverOf(s.slug, s.cover);
   const count = worksIn(s.slug).length;

@@ -19,6 +19,8 @@ interface Props {
   viewTitle?: string;
   viewMeta?: string;
   viewLinkLabel?: string;
+  /** Форма заявки с этой картиной — для работ в продаже */
+  order?: string;
   class?: string;
   style?: string;
   reveal?: "rise" | "card";
@@ -38,6 +40,7 @@ const {
   viewTitle,
   viewMeta,
   viewLinkLabel = "View the work",
+  order,
   class: className,
   style,
   reveal = "card",
@@ -70,6 +73,7 @@ const full = await getImage({ src: image, width: Math.min(image.width, 1600), fo
         data-art-meta={viewMeta ?? [meta, price].filter(Boolean).join(" · ")}
         data-art-href={href}
         data-art-href-label={viewLinkLabel}
+        data-art-order={order}
       />
     </span>
   </a>

@@ -1,0 +1,148 @@
+---
+// Страница серии: вступление, работы в продаже, архив (проданные и остальные), другие серии.
+// Порядок работ тот же, что у «Prev / Next» на странице работы (seriesOrder).
+import SectionHead from "../../../components/SectionHead.astro";
+import SeriesNav from "../../../components/SeriesNav.astro";
+import Wall, { type WallItem } from "../../../components/Wall.astro";
+import Base from "../../../layouts/Base.astro";
+import { series, type Series } from "../../../data/series";
+import {
+  coverOf,
+  loadImage,
+  mediumOf,
+  mediumSize,
+  orderHref,
+  priceOrState,
+  ratioOf,
+  seriesOrder,
+  workHref,
+  worksIn,
+  type Work,
+} from "../../../lib/works";
+
+export function getStaticPaths() {
+  return series.map((s) => ({ params: { series: s.slug }, props: { s } }));
+}
+
+interface Props {
+  s: Series;
+}
+
+const { s } = Astro.props;
+const isNew = s.slug === "new";
+const list = seriesOrder(s.slug);
+const forSale = list.filter((w) => w.status === "available" || w.status === "reserved");
+const archive = list.filter((w) => w.status === "sold" || w.status === "archive");
+const cover = await loadImage(coverOf(s.slug, s.cover).images[0].src);
+
+const card = (w: Work): WallItem => ({
+  src: w.images[0].src,
+  ratio: ratioOf(w),
+  alt: `${w.title}, ${mediumOf(w).toLowerCase()}`,
+  href: workHref(w),
+  title: w.title,
+  meta: mediumSize(w),
+  price: priceOrState(w),
+  order: orderHref(w),
+});
+
+// Другие серии — обложками, как на главной
+const others: WallItem[] = series
+  .filter((x) => x.slug !== s.slug && x.slug !== "new")
+  .map((x) => {
+    const c = coverOf(x.slug, x.cover);
+    return {
+      src: c.images[0].src,
+      ratio: ratioOf(c),
+      alt: `${c.title}, from the ${x.title} series`,
+      href: `/works/${x.slug}`,
+      title: x.title,
+      price: x.years,
+      meta: `${x.places} · ${worksIn(x.slug).length} works`,
+      viewTitle: c.title,
+      viewMeta: [`${x.title} series`, mediumSize(c), priceOrState(c)].filter(Boolean).join(" · "),
+      viewLinkLabel: `See the ${x.title} series`,
+    };
+  });
+
+const blocks = [
+  { title: "Available now", items: forSale, height: 250 },
+  { title: "Archive", items: archive, height: 190 },
+].filter((b) => b.items.length);
+---
+
+<Base
+  title={isNew ? s.title : `${s.title} series`}
+  description={`${s.intro} ${list.length} paintings by Vityungr${forSale.length ? `, ${forSale.length} available` : ""}.`}
+  image={cover.src}
+>
+  <section class="ser" aria-labelledby="series-title">
+    <SectionHead
+      n="—"
+      label={isNew ? "Works" : "Series"}
+      aside={[s.places, s.years].filter(Boolean).join(" · ")}
+      title={s.title}
+      titleId="series-title"
+      level={1}
+    >
+      <p>{s.intro}</p>
+      <p>
+        {list.length} works{forSale.length ? `, ${forSale.length} of them available now` : ", none available right now"}.
+      </p>
+    </SectionHead>
+    <SeriesNav current={s.slug} />
+
+    {
+      blocks.map((b, i) => (
+        <div class="ser__block">
+          <div class="ser__head label" data-reveal="text">
+            <span>
+              <span class="ser__n num">0{i + 1}</span>
+              {b.title}
+            </span>
+            <span class="muted num">{b.items.length}</span>
+          </div>
+          <Wall items={b.items.map(card)} height={b.height} />
+        </div>
+      ))
+    }
+  </section>
+
+  <section class="section" aria-labelledby="others-title">
+    <SectionHead
+      n="—"
+      label="Series"
+      aside={`${others.length} places`}
+      title={isNew ? "Series" : "Other series"}
+      titleId="others-title"
+    >
+      <p>Every series grows out of a place I’ve lived in or travelled to.</p>
+    </SectionHead>
+    <Wall items={others} height={230} />
+  </section>
+</Base>
+
+<style>
+  .ser {
+    padding-top: clamp(120px, 16vh, 180px);
+  }
+
+  .ser__block + .ser__block {
+    margin-top: clamp(72px, 8vw, 128px);
+  }
+
+  .ser__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 var(--gutter) clamp(24px, 2.6vw, 36px);
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+
+  .ser__n {
+    display: inline-block;
+    min-width: 3em;
+    color: var(--ink-3);
+  }
+</style>

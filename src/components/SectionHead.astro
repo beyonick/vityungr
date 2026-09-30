@@ -1,14 +1,17 @@
 ---
 // Шапка раздела: линия, номер и название, справа приписка; ниже заголовок и короткий текст (слот).
+// На отдельных страницах (заявка, документы) заголовок — h1: level={1}.
 interface Props {
   n: string;
   label: string;
   aside?: string;
   title: string;
   titleId: string;
+  level?: 1 | 2;
 }
 
-const { n, label, aside, title, titleId } = Astro.props;
+const { n, label, aside, title, titleId, level = 2 } = Astro.props;
+const Heading = level === 1 ? "h1" : "h2";
 ---
 
 <header class="sec-head">
@@ -16,7 +19,7 @@ const { n, label, aside, title, titleId } = Astro.props;
     <span><span class="sec-head__n num">{n}</span>{label}</span>
     {aside && <span class="muted">{aside}</span>}
   </div>
-  <h2 id={titleId} class="sec-head__title display" data-reveal="text">{title}</h2>
+  <Heading id={titleId} class="sec-head__title display" data-reveal="text">{title}</Heading>
   {
     Astro.slots.has("default") && (
       <div class="sec-head__text" data-reveal="text">
