@@ -1,0 +1,97 @@
+---
+import { Image } from "astro:assets";
+import snow from "../../../assets/vitya/plein-air-snow.jpg";
+import windowPhoto from "../../../assets/vitya/painting-by-window.jpg";
+import Icon from "../Icon.astro";
+---
+
+<section class="section about" aria-labelledby="about-title">
+  <div class="wrap about__grid">
+    <div class="about__photos">
+      <figure class="about__photo about__photo--main" data-reveal>
+        <Image
+          src={snow}
+          alt="Viktor painting at an easel in a snowy forest, wearing a red hood"
+          widths={[480, 800, 1200]}
+          sizes="(max-width: 859px) 80vw, 38vw"
+          format="webp"
+          quality={80}
+        />
+      </figure>
+      <figure class="about__photo about__photo--small" data-reveal>
+        <Image
+          src={windowPhoto}
+          alt="Viktor painting by an open window with mountains outside"
+          widths={[320, 520, 800]}
+          sizes="(max-width: 859px) 46vw, 18vw"
+          format="webp"
+          quality={80}
+        />
+      </figure>
+    </div>
+
+    <div class="about__text">
+      <div class="section-head">
+        <p class="caps section-head__index"><span class="muted">06</span> About</p>
+      </div>
+      <h2 id="about-title" class="display about__title" data-split>Hi, I’m Viktor. You can call me Vityungr.</h2>
+      <div class="prose" data-reveal>
+        <p>
+          I was born in Russia and graduated from the Moscow Academic Art College in 2021. In 2022 I moved abroad, and
+          since then I’ve lived in several countries, each with its own nature and culture.
+        </p>
+        <p>
+          Most of my work is painted outdoors, in rain, heat and −18°C. Larger pieces I finish in the studio. Right now
+          I’m based in Montenegro, where I paint, ship my work around the world and collaborate with galleries.
+        </p>
+      </div>
+      <a class="link-arrow about__link" href="/about" data-reveal>More about me <Icon name="arrow-right-linear" /></a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(40px, 7vw, 128px);
+    align-items: center;
+  }
+
+  .about__photos {
+    position: relative;
+    padding-bottom: 14%;
+  }
+
+  .about__photo img {
+    width: 100%;
+  }
+
+  .about__photo--main {
+    width: 82%;
+  }
+
+  .about__photo--small {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 42%;
+    border: 8px solid var(--paper);
+  }
+
+  .about__title {
+    font-size: var(--t-h2);
+    margin-bottom: 28px;
+    max-width: 14ch;
+  }
+
+  .about__link {
+    margin-top: 24px;
+  }
+
+  @media (max-width: 859px) {
+    .about__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

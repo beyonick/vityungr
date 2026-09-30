@@ -1,0 +1,102 @@
+---
+import { fieldNotes } from "../../../data/series";
+import { artMeta, findWork, workHref } from "../../../lib/works";
+import Artwork from "../Artwork.astro";
+
+const notes = fieldNotes.map((n) => ({ ...n, work: findWork(n.work) }));
+---
+
+<section class="section notes" aria-labelledby="notes-title">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="caps section-head__index"><span class="muted">05</span> Field notes</p>
+      <p class="caps muted">From my Instagram captions</p>
+    </div>
+    <h2 id="notes-title" class="display notes__title" data-split>Painting outdoors never goes quietly</h2>
+
+    <ul class="notes__list" role="list">
+      {
+        notes.map((n) => (
+          <li class="note" data-reveal-card>
+            <figure>
+              <div class="board note__board">
+                <Artwork src={n.work.images[0].src} alt={n.title} sizes="(max-width: 759px) 70vw, 20vw" widths={[320, 480, 720]} zoom={{ title: n.title, meta: artMeta(n.work), href: workHref(n.work), hrefLabel: "View the work" }} />
+              </div>
+              <blockquote class="note__quote display">
+                <p>{n.text}</p>
+              </blockquote>
+              <figcaption class="caps muted note__meta">
+                {n.title} · {n.place}
+              </figcaption>
+            </figure>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .notes__title {
+    font-size: var(--t-h2);
+    max-width: 16ch;
+    margin-bottom: clamp(36px, 5vw, 72px);
+  }
+
+  .notes__list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(28px, 3vw, 44px) clamp(14px, 1.6vw, 24px);
+  }
+
+  .note__board {
+    aspect-ratio: 5 / 4;
+    padding: 10% 14%;
+  }
+
+  .note__quote {
+    margin-top: 20px;
+    font-size: clamp(1.15rem, 0.95rem + 0.6vw, 1.45rem);
+    line-height: 1.3;
+    font-style: italic;
+    font-variation-settings: "SOFT" 100, "WONK" 1;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+  }
+
+  .note__quote p::before {
+    content: "“";
+  }
+
+  .note__quote p::after {
+    content: "”";
+  }
+
+  .note__meta {
+    margin-top: 14px;
+  }
+
+  @media (max-width: 1099px) {
+    .notes__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 599px) {
+    .notes__list {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      gap: 16px;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      padding-bottom: 8px;
+      scrollbar-width: none;
+    }
+
+    .note {
+      flex: 0 0 78%;
+      scroll-snap-align: start;
+    }
+  }
+</style>

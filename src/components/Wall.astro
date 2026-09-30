@@ -1,0 +1,178 @@
+---
+// Ровные ряды: у картин в ряду одинаковая высота, ширина — по пропорциям, ряд заполняет строку целиком.
+// Считает сам браузер: flex-grow пропорционален соотношению сторон.
+import Painting from "./Painting.astro";
+
+export type WallItem = {
+  src: string;
+  ratio: number;
+  alt: string;
+  href: string;
+  title: string;
+  meta?: string;
+  price?: string;
+  note?: string;
+  viewTitle?: string;
+  viewMeta?: string;
+  viewLinkLabel?: string;
+};
+
+interface Props {
+  items: WallItem[];
+  /** Желаемая высота ряда на десктопе, в px при ширине 1440 */
+  height?: number;
+  /** Все работы в один ряд (на телефоне — ряд листается пальцем, если не wrapMobile) */
+  single?: boolean;
+  /** На телефоне одиночный ряд переносится, как обычная стена */
+  wrapMobile?: boolean;
+  /** Показать только столько рядов (лишние работы скрываются после раскладки) */
+  rows?: number;
+  class?: string;
+}
+
+const { items, height = 300, single = false, wrapMobile = false, rows, class: className } = Astro.props;
+const hVw = (height / 1440) * 100;
+---
+
+<div
+  class:list={["wall", className, { "wall--single": single, "wall--swipe": single && !wrapMobile }]}
+  style={`--h:${hVw.toFixed(2)}vw`}
+  data-rows={rows}
+>
+  {
+    items.map((it) => (
+      <Painting
+        class="wall__item"
+        style={`--r:${it.ratio.toFixed(4)}`}
+        src={it.src}
+        alt={it.alt}
+        sizes={`(max-width: 759px) ${Math.min(92, Math.ceil(it.ratio * 42))}vw, ${Math.min(90, Math.ceil(it.ratio * hVw * 1.3))}vw`}
+        href={it.href}
+        title={it.title}
+        meta={it.meta}
+        price={it.price}
+        note={it.note}
+        viewTitle={it.viewTitle}
+        viewMeta={it.viewMeta}
+        viewLinkLabel={it.viewLinkLabel}
+      />
+    ))
+  }
+</div>
+
+<style>
+  .wall {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: clamp(36px, 3.4vw, 52px) clamp(16px, 1.8vw, 28px);
+    padding-inline: var(--gutter);
+  }
+
+  /* последний ряд не растягиваем */
+  .wall::after {
+    content: "";
+    flex: 999 1 0;
+  }
+
+  /* обрезанная стена: последний показанный ряд тоже растягивается на всю ширину */
+  .wall.is-clipped::after {
+    content: none;
+  }
+
+  .wall :global(.wall__item.is-over) {
+    display: none;
+  }
+
+  .wall :global(.wall__item) {
+    flex: var(--r) 1 calc(var(--r) * var(--h));
+    max-width: calc(var(--r) * var(--h) * 1.7);
+  }
+
+  /* Один ряд: ширины делятся по пропорциям, высота у всех одинаковая */
+  .wall--single {
+    flex-wrap: nowrap;
+  }
+
+  .wall--single::after {
+    content: none;
+  }
+
+  .wall--single :global(.wall__item) {
+    flex: var(--r) 1 0;
+    max-width: none;
+  }
+
+  @media (max-width: 759px) {
+    .wall {
+      --h: 36vw !important;
+      gap: 32px 12px;
+    }
+
+    .wall--single:not(.wall--swipe) {
+      flex-wrap: wrap;
+    }
+
+    .wall--single:not(.wall--swipe) :global(.wall__item) {
+      flex: var(--r) 1 calc(var(--r) * var(--h));
+    }
+
+    .wall--swipe {
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      gap: 16px;
+      scroll-padding-inline: var(--gutter);
+    }
+
+    .wall--swipe::-webkit-scrollbar {
+      display: none;
+    }
+
+    .wall--swipe :global(.wall__item) {
+      flex: none;
+      width: calc(var(--r) * 48vw);
+      scroll-snap-align: start;
+    }
+  }
+</style>
+
+<script>
+  // Оставляем первые N рядов: ряды считаем по верхнему краю работ после раскладки
+  const walls = Array.from(document.querySelectorAll<HTMLElement>(".wall[data-rows]"));
+  const clip = () =>
+    walls.forEach((wall) => {
+      const limit = Number(wall.dataset.rows);
+      const items = Array.from(wall.querySelectorAll<HTMLElement>(".wall__item"));
+      wall.classList.remove("is-clipped");
+      items.forEach((el) => el.classList.remove("is-over"));
+      const rowsOf = (list: HTMLElement[]) => [...new Set(list.map((el) => el.offsetTop))].sort((a, b) => a - b);
+      const tops = rowsOf(items);
+      if (tops.length <= limit) return;
+      // режем по порядку, начиная с первой работы лишнего ряда, — иначе маленькие работы подтянутся вверх
+      let visible = items.findIndex((el) => el.offsetTop >= tops[limit]);
+      items.slice(visible).forEach((el) => el.classList.add("is-over"));
+      wall.classList.add("is-clipped");
+      // без разделителя последний ряд растягивается — проверяем, что рядов ровно столько, сколько нужно
+      while (visible > 1 && rowsOf(items.slice(0, visible)).length > limit) {
+        items[--visible].classList.add("is-over");
+      }
+    });
+  clip();
+  // раскладка меняется после загрузки шрифтов и при смене ширины — пересчитываем
+  let frame = 0;
+  const later = () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(clip);
+  };
+  let lastWidth = 0;
+  const ro = new ResizeObserver(([entry]) => {
+    if (Math.round(entry.contentRect.width) === lastWidth) return;
+    lastWidth = Math.round(entry.contentRect.width);
+    later();
+  });
+  walls.forEach((wall) => ro.observe(wall));
+  document.fonts?.ready.then(later);
+  window.addEventListener("load", later, { once: true });
+  window.setTimeout(later, 1200);
+</script>

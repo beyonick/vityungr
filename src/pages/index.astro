@@ -1,0 +1,21 @@
+---
+// Новая версия: белая галерея. Прошлая лежит в src/v1 и открывается по /v1/.
+import About from "../components/home/About.astro";
+import Available from "../components/home/Available.astro";
+import FieldNotes from "../components/home/FieldNotes.astro";
+import Hero from "../components/home/Hero.astro";
+import Moving from "../components/home/Moving.astro";
+import PrintClub from "../components/home/PrintClub.astro";
+import Series from "../components/home/Series.astro";
+import Base from "../layouts/Base.astro";
+---
+
+<Base home>
+  <Hero />
+  <Series />
+  <Available />
+  <Moving />
+  <PrintClub />
+  <FieldNotes />
+  <About />
+</Base>

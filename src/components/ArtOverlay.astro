@@ -1,0 +1,159 @@
+---
+// Как в прошлой версии (src/v1/components/ArtOverlay.astro), только на белом фоне.
+---
+
+<!-- Выезд картины снизу при наведении (только мышь, декоративный) -->
+<div class="peek" aria-hidden="true" data-peek>
+  <img class="peek__img" alt="" data-peek-img />
+</div>
+
+<!-- Просмотр почти на весь экран по клику -->
+<div class="viewer" role="dialog" aria-modal="true" aria-labelledby="viewer-title" hidden data-viewer>
+  <div class="viewer__backdrop" data-viewer-close></div>
+  <figure class="viewer__figure">
+    <img class="viewer__img" alt="" data-viewer-img />
+    <figcaption class="viewer__caption" data-viewer-caption>
+      <div>
+        <p id="viewer-title" class="viewer__title serif" data-viewer-title></p>
+        <p class="viewer__meta muted" data-viewer-meta></p>
+      </div>
+      <a class="tlink" href="/" data-viewer-link hidden>
+        <span data-viewer-link-label>View the work</span>
+      </a>
+    </figcaption>
+  </figure>
+  <button class="viewer__close label" type="button" data-viewer-close>Close <span aria-hidden="true">✕</span></button>
+</div>
+
+<style>
+  .peek {
+    position: fixed;
+    left: -3vw;
+    right: -3vw;
+    bottom: 0;
+    z-index: 40;
+    pointer-events: none;
+    transform-origin: 50% 100%;
+    visibility: hidden;
+  }
+
+  .peek__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    box-shadow:
+      0 -2px 4px rgb(0 0 0 / 0.1),
+      0 -30px 70px -18px rgb(0 0 0 / 0.38);
+  }
+
+  /* На первом экране картина опускается сверху */
+  .peek.peek--top {
+    top: 0;
+    bottom: auto;
+    transform-origin: 50% 0;
+  }
+
+  .peek--top .peek__img {
+    box-shadow:
+      0 2px 4px rgb(0 0 0 / 0.1),
+      0 30px 70px -18px rgb(0 0 0 / 0.38);
+  }
+
+  .viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    display: grid;
+    place-items: center;
+    padding: clamp(56px, 7vh, 88px) var(--gutter) clamp(20px, 3vh, 32px);
+  }
+
+  .viewer[hidden] {
+    display: none;
+  }
+
+  .viewer__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgb(255 255 255 / 0.97);
+    cursor: zoom-out;
+  }
+
+  .viewer__figure {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+    max-width: 100%;
+    max-height: 100%;
+    pointer-events: none;
+  }
+
+  .viewer__img {
+    display: block;
+    max-width: min(94vw, 1600px);
+    max-height: calc(100svh - 190px);
+    width: auto;
+    height: auto;
+    box-shadow: var(--shadow-lift);
+    will-change: transform;
+  }
+
+  .viewer__caption {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 16px 32px;
+    width: 100%;
+    pointer-events: auto;
+  }
+
+  .viewer__title {
+    font-size: clamp(1.15rem, 1rem + 0.6vw, 1.6rem);
+    line-height: 1.15;
+  }
+
+  .viewer__meta {
+    margin-top: 4px;
+    font-size: var(--t-small);
+  }
+
+  .viewer__caption .tlink {
+    font-size: var(--t-small);
+  }
+
+  .viewer__close {
+    position: absolute;
+    top: 12px;
+    right: var(--gutter);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--bg);
+    cursor: pointer;
+    transition: border-color 0.3s var(--ease-soft);
+  }
+
+  .viewer__close:hover {
+    border-color: var(--ink);
+  }
+
+  @media (max-width: 599px) {
+    .viewer__caption {
+      flex-direction: column;
+      align-items: start;
+    }
+  }
+
+  :global([data-art]) {
+    cursor: zoom-in;
+  }
+</style>
+
+<script>
+  import "../scripts/art";
+</script>

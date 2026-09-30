@@ -1,0 +1,38 @@
+---
+// Все работы в продаже
+import SectionHead from "../components/SectionHead.astro";
+import Wall, { type WallItem } from "../components/Wall.astro";
+import Base from "../layouts/Base.astro";
+import { galleryOrder, mediumSize, priceOrState, ratioOf, workHref } from "../lib/works";
+
+const all = galleryOrder();
+const items: WallItem[] = all.map((w) => ({
+  src: w.images[0].src,
+  ratio: ratioOf(w),
+  alt: `${w.title}, ${w.medium.toLowerCase()}`,
+  href: workHref(w),
+  title: w.title,
+  meta: mediumSize(w),
+  price: priceOrState(w),
+  viewLinkLabel: "View and request",
+}));
+---
+
+<Base title="Available works" description="Original oil sketches and tempera paintings by Vityungr, available to order.">
+  <section class="works" aria-labelledby="works-title">
+    <SectionHead n="—" label="Originals" aside={`${all.length} available`} title="Available now" titleId="works-title">
+      <p>
+        Oil sketches on thick primed board and a few tempera paintings on canvas, all signed. Every piece is one of a
+        kind; most were painted outdoors, from life.
+      </p>
+      <p>Ordering is a request, not a payment: I’ll email you to agree on shipping and how to pay.</p>
+    </SectionHead>
+    <Wall items={items} height={280} />
+  </section>
+</Base>
+
+<style>
+  .works {
+    padding-top: clamp(120px, 16vh, 180px);
+  }
+</style>

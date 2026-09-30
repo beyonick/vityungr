@@ -1,0 +1,187 @@
+---
+// Картина с подписью. Название видно всегда, цена и размер проявляются при наведении.
+// Наведение и клик обрабатывает scripts/art.ts: картина выезжает снизу экрана, по клику открывается.
+import { getImage, Image } from "astro:assets";
+import { loadImage } from "../lib/works";
+
+interface Props {
+  src: string; // путь внутри src/assets/works
+  alt: string;
+  sizes: string;
+  widths?: number[];
+  priority?: boolean;
+  href: string;
+  title: string;
+  meta?: string; // техника, размер — при наведении
+  price?: string; // цена или статус — при наведении
+  note?: string; // цитата под картиной, видна всегда
+  // подпись в просмотре на весь экран
+  viewTitle?: string;
+  viewMeta?: string;
+  viewLinkLabel?: string;
+  class?: string;
+  style?: string;
+  reveal?: "rise" | "card";
+}
+
+const {
+  src,
+  alt,
+  sizes,
+  widths = [360, 540, 800, 1100],
+  priority = false,
+  href,
+  title,
+  meta,
+  price,
+  note,
+  viewTitle,
+  viewMeta,
+  viewLinkLabel = "View the work",
+  class: className,
+  style,
+  reveal = "card",
+} = Astro.props;
+
+const image = await loadImage(src);
+const usable = widths.filter((w) => w <= image.width);
+const ratio = image.width / image.height;
+// Большая версия для выезда снизу и просмотра на весь экран
+const full = await getImage({ src: image, width: Math.min(image.width, 1600), format: "webp", quality: 84 });
+---
+
+<figure class:list={["pt", className]} style={style} data-reveal={reveal === "card" ? "" : reveal}>
+  <a class="pt__link" href={href}>
+    <span class="pt__frame" style={`aspect-ratio:${ratio.toFixed(4)}`}>
+      <Image
+        src={image}
+        alt={alt}
+        widths={usable.length ? usable : [image.width]}
+        sizes={sizes}
+        format="webp"
+        quality={80}
+        loading={priority ? "eager" : "lazy"}
+        fetchpriority={priority ? "high" : undefined}
+        decoding="async"
+        draggable="false"
+        data-art={full.src}
+        data-art-ratio={ratio.toFixed(4)}
+        data-art-title={viewTitle ?? title}
+        data-art-meta={viewMeta ?? [meta, price].filter(Boolean).join(" · ")}
+        data-art-href={href}
+        data-art-href-label={viewLinkLabel}
+      />
+    </span>
+  </a>
+  <figcaption class="pt__cap">
+    {note && <p class="pt__note serif">{note}</p>}
+    <p class="pt__line">
+      <span class="pt__title serif">{title}</span>
+      {price && <span class="pt__price pt__more num">{price}</span>}
+    </p>
+    {meta && <p class="pt__meta pt__more muted">{meta}</p>}
+  </figcaption>
+</figure>
+
+<style>
+  .pt {
+    position: relative;
+    min-width: 0;
+  }
+
+  .pt__link {
+    display: block;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .pt__frame {
+    position: relative;
+    display: block;
+    width: 100%;
+    box-shadow: var(--shadow-rest);
+    transition:
+      transform 0.6s var(--ease-out),
+      box-shadow 0.6s var(--ease-out);
+  }
+
+  .pt__frame :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  .pt__cap {
+    margin-top: 12px;
+    font-size: var(--t-small);
+    line-height: 1.4;
+  }
+
+  .pt__line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .pt__title {
+    font-size: var(--t-title);
+    line-height: 1.25;
+  }
+
+  .pt__price {
+    white-space: nowrap;
+  }
+
+  .pt__meta {
+    margin-top: 2px;
+    font-size: 0.6875rem;
+  }
+
+  .pt__note {
+    margin-bottom: 8px;
+    font-size: var(--t-text);
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+
+  .pt__note::before {
+    content: "“";
+  }
+
+  .pt__note::after {
+    content: "”";
+  }
+
+  /* Наведение: картина приподнимается, под ней тень, проявляются цена и размер.
+     .is-hovered ставит scripts/art.ts по координатам мыши — работает и пока страница едет. */
+  @media (hover: hover) and (pointer: fine) {
+    .pt__more {
+      opacity: 0;
+      transition: opacity 0.4s var(--ease-soft);
+    }
+
+    :global(.pt.is-hovered) .pt__more,
+    .pt:focus-within .pt__more,
+    :global(html:not(.js)) .pt:hover .pt__more {
+      opacity: 1;
+    }
+
+    :global(.pt.is-hovered) .pt__frame,
+    .pt__link:focus-visible .pt__frame,
+    :global(html:not(.js)) .pt__link:hover .pt__frame {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lift);
+    }
+  }
+
+  .pt__link:focus-visible {
+    outline: none;
+  }
+
+  .pt__link:focus-visible .pt__frame {
+    outline: 1px solid var(--ink);
+    outline-offset: 5px;
+  }
+</style>

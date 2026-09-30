@@ -1,0 +1,154 @@
+---
+import { series } from "../../../data/series";
+import { artMeta, coverOf, worksIn } from "../../../lib/works";
+import Artwork from "../Artwork.astro";
+
+// Ряды разной плотности: 3 крупных, 4 средних, 2 широких
+const rows = [series.slice(0, 3), series.slice(3, 7), series.slice(7)];
+const cards = rows.map((row) =>
+  row.map((s) => ({ ...s, cover: coverOf(s.slug, s.cover), count: worksIn(s.slug).length })),
+);
+---
+
+<section class="section series" id="series" aria-labelledby="series-title">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="caps section-head__index"><span class="muted">01</span> Series</p>
+      <p class="caps muted">{series.length} places · 2021–2026</p>
+    </div>
+
+    <div class="series__intro">
+      <h2 id="series-title" class="display series__title" data-split>
+        Every series grows out of a place I’ve lived in or travelled to.
+      </h2>
+      <p class="lede muted" data-reveal>
+        I try to catch my connection with each place, so paintings from different countries end up looking completely
+        different.
+      </p>
+    </div>
+
+    {
+      cards.map((row, r) => (
+        <ul class={`series__row series__row--${row.length}`} role="list">
+          {row.map((s) => (
+            <li data-reveal-card>
+              <a class="series-card" href={`/works/${s.slug}`}>
+                <div class={`board ${r === 2 ? "board--wide" : ""}`}>
+                  <Artwork
+                    src={s.cover.images[0].src}
+                    alt={`${s.cover.title}, ${s.title}`}
+                    sizes={r === 0 ? "(max-width: 759px) 80vw, 26vw" : r === 1 ? "(max-width: 759px) 42vw, 20vw" : "(max-width: 759px) 80vw, 36vw"}
+                    zoom={{ title: s.cover.title, meta: `${s.title} · ${artMeta(s.cover)}`, href: `/works/${s.slug}`, hrefLabel: `See the ${s.title} series` }}
+                  />
+                </div>
+                <div class="series-card__meta">
+                  <h3 class="series-card__title">{s.title}</h3>
+                  <span class="caps muted num">{s.years}</span>
+                </div>
+                <p class="series-card__sub muted">
+                  {s.places} · <span class="num">{s.count}</span> works
+                </p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .series {
+    padding-top: clamp(40px, 5vw, 80px);
+  }
+
+  .series__intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 24px var(--gutter);
+    margin-bottom: clamp(40px, 6vw, 88px);
+  }
+
+  .series__title {
+    font-size: var(--t-h2);
+    max-width: 18ch;
+  }
+
+  .series__row {
+    display: grid;
+    gap: clamp(28px, 3vw, 44px) clamp(12px, 1.4vw, 20px);
+    margin-bottom: clamp(36px, 5vw, 72px);
+  }
+
+  .series__row--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .series__row--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .series__row--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .series-card {
+    display: block;
+    text-decoration: none;
+  }
+
+  .board--wide {
+    aspect-ratio: 16 / 10;
+    padding: 9% 18%;
+  }
+
+  .series-card__meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .series-card__title {
+    font-family: var(--f-display);
+    font-weight: 400;
+    font-size: var(--t-h3);
+    font-variation-settings: "SOFT" 100;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  .series-card__sub {
+    margin-top: 4px;
+    font-size: var(--t-small);
+  }
+
+  .series-card:hover .series-card__title {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+
+  @media (max-width: 959px) {
+    .series__intro {
+      grid-template-columns: 1fr;
+    }
+
+    .series__row--4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 759px) {
+    .series__row--3,
+    .series__row--2 {
+      grid-template-columns: 1fr;
+    }
+
+    .series__row--3 .board {
+      aspect-ratio: 1 / 1;
+    }
+  }
+</style>

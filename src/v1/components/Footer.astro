@@ -1,0 +1,180 @@
+---
+import { nav, printClub, site, social } from "../../data/site";
+import Icon from "./Icon.astro";
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <section class="wrap contact" aria-labelledby="contact-title">
+    <p class="caps muted">Questions, orders, shipping</p>
+    <h2 id="contact-title" class="display contact__title" data-split>Write to me</h2>
+    <a class="contact__mail display" href={`mailto:${site.email}`}>
+      {site.email}
+      <Icon name="arrow-right-up-linear" />
+    </a>
+    <p class="contact__note muted">I answer every message myself, usually within a couple of days.</p>
+  </section>
+
+  <div class="wrap footer-grid">
+    <div>
+      <p class="caps muted">Explore</p>
+      <ul>
+        <li><a href="/">Home</a></li>
+        {
+          nav.map((n) => (
+            <li>
+              <a href={n.href}>{n.label}</a>
+            </li>
+          ))
+        }
+        <li><a href="/order">Order &amp; delivery</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="caps muted">Follow</p>
+      <ul>
+        {
+          social.map((s) => (
+            <li>
+              <a href={s.href} rel="noopener" target="_blank">
+                {s.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div>
+      <p class="caps muted">Support</p>
+      <ul>
+        <li><a href={printClub.patreon} rel="noopener" target="_blank">Patreon</a></li>
+        <li><a href={printClub.boosty} rel="noopener" target="_blank">Boosty</a></li>
+      </ul>
+    </div>
+    <div class="footer-grid__meta">
+      <p class="caps muted">Studio</p>
+      <p>{site.location}</p>
+      <p class="muted">Ships worldwide</p>
+    </div>
+  </div>
+
+  <div class="wrap footer-base">
+    <p class="footer-mark display" aria-hidden="true">Vityungr</p>
+    <div class="footer-base__line caps muted">
+      <span>© {year} {site.fullName}</span>
+      <a href="#top">Back to top</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    padding-top: var(--section);
+    border-top: 1px solid var(--line);
+  }
+
+  .contact {
+    display: grid;
+    justify-items: start;
+    gap: 18px;
+    padding-bottom: var(--section);
+  }
+
+  .contact__title {
+    font-size: var(--t-h2);
+  }
+
+  .contact__mail {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25em;
+    font-size: clamp(1.6rem, 0.8rem + 3.6vw, 4.2rem);
+    line-height: 1.1;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.14em;
+    text-decoration-color: var(--line);
+    overflow-wrap: anywhere;
+    transition: color 0.35s var(--ease-out), text-decoration-color 0.35s var(--ease-out);
+  }
+
+  .contact__mail:hover {
+    color: var(--accent);
+    text-decoration-color: currentColor;
+  }
+
+  .contact__note {
+    max-width: 40ch;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px var(--gutter);
+    padding-block: 40px;
+    border-top: 1px solid var(--line);
+  }
+
+  .footer-grid ul {
+    margin-top: 12px;
+  }
+
+  .footer-grid li a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    text-decoration: none;
+  }
+
+  .footer-grid__meta p:not(.caps) {
+    line-height: 36px;
+  }
+
+  .footer-grid__meta p.caps {
+    margin-bottom: 12px;
+  }
+
+  .footer-grid li a:hover {
+    color: var(--accent);
+  }
+
+  .footer-base {
+    padding-bottom: 20px;
+  }
+
+  .footer-mark {
+    font-size: clamp(4.5rem, 21vw, 22rem);
+    line-height: 0.8;
+    letter-spacing: -0.05em;
+    font-variation-settings: "SOFT" 100, "WONK" 1;
+    margin-left: -0.04em;
+    padding-top: 12px;
+    color: var(--ink);
+    user-select: none;
+  }
+
+  .footer-base__line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding-top: 20px;
+    margin-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+
+  .footer-base__line a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: none;
+  }
+
+  @media (max-width: 759px) {
+    .footer-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -1,0 +1,60 @@
+---
+import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/schibsted-grotesk";
+import "../styles/global.css";
+
+import ArtOverlay from "../components/ArtOverlay.astro";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import { site } from "../../data/site";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = site.description } = Astro.props;
+const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#f4f1ea" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <script is:inline>
+      // Помечаем, что JS есть. Если анимации не стартуют за 2.5 с, показываем всё как есть.
+      (function () {
+        var d = document.documentElement;
+        d.classList.add("js");
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) d.classList.add("reduced-motion");
+        window.__motionFallback = setTimeout(function () {
+          d.classList.add("motion-fallback");
+        }, 2500);
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <ArtOverlay />
+    <script>
+      import "../scripts/motion";
+    </script>
+  </body>
+</html>

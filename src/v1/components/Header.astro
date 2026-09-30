@@ -1,0 +1,228 @@
+---
+import { nav, social } from "../../data/site";
+import Icon from "./Icon.astro";
+
+const instagram = social.find((s) => s.label === "Instagram")!;
+---
+
+<header class="site-header" data-header>
+  <div class="wrap site-header__bar">
+    <a class="wordmark" href="/" aria-label="Vityungr, home">Vityungr</a>
+
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href}>{item.label}</a>
+            </li>
+          ))
+        }
+        <li class="site-nav__rule" aria-hidden="true"></li>
+        <li>
+          <a href={instagram.href} rel="noopener" target="_blank">
+            Instagram <Icon name="arrow-right-up-linear" /><span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <button class="menu-btn caps" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+      <span data-menu-label>Menu</span>
+    </button>
+  </div>
+
+  <div class="mobile-menu" id="mobile-menu" hidden data-menu>
+    <nav aria-label="Mobile">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a class="display" href={item.href}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <ul class="mobile-menu__social">
+        {
+          social.map((s) => (
+            <li>
+              <a class="caps" href={s.href} rel="noopener" target="_blank">
+                {s.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+    transition:
+      background-color 0.4s var(--ease-out),
+      box-shadow 0.4s var(--ease-out),
+      transform 0.5s var(--ease-out);
+  }
+
+  .site-header.is-solid {
+    background: rgb(244 241 234 / 0.94);
+    box-shadow: 0 1px 0 var(--line);
+  }
+
+  .site-header.is-hidden {
+    transform: translateY(-100%);
+  }
+
+  .site-header__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 68px;
+  }
+
+  .wordmark {
+    font-family: var(--f-display);
+    font-size: 1.45rem;
+    font-weight: 420;
+    font-variation-settings: "SOFT" 100, "WONK" 1;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    padding-block: 8px;
+  }
+
+  .site-nav ul {
+    display: flex;
+    align-items: center;
+    gap: clamp(14px, 1.8vw, 28px);
+  }
+
+  .site-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    min-height: 44px;
+    font-size: var(--t-caps);
+    font-weight: 560;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ink-soft);
+    transition: color 0.3s var(--ease-out);
+  }
+
+  .site-nav a:hover {
+    color: var(--ink);
+  }
+
+  .site-nav__rule {
+    width: 28px;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .menu-btn {
+    display: none;
+    min-height: 44px;
+    min-width: 64px;
+    padding: 0 4px;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    cursor: pointer;
+    font-family: var(--f-sans);
+  }
+
+  .mobile-menu {
+    position: fixed;
+    inset: 68px 0 0 0;
+    background: var(--paper);
+    padding: 24px var(--gutter) 40px;
+    overflow-y: auto;
+  }
+
+  .mobile-menu ul:first-child a {
+    display: block;
+    padding-block: 10px;
+    font-size: clamp(2.4rem, 11vw, 3.4rem);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .mobile-menu__social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin-top: 32px;
+  }
+
+  .mobile-menu__social a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: none;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 859px) {
+    .site-nav {
+      display: none;
+    }
+
+    .menu-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>("[data-header]");
+  const toggle = document.querySelector<HTMLButtonElement>("[data-menu-toggle]");
+  const menu = document.querySelector<HTMLElement>("[data-menu]");
+  const label = document.querySelector<HTMLElement>("[data-menu-label]");
+
+  if (header) {
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      header.classList.toggle("is-solid", y > 24);
+      const menuOpen = toggle?.getAttribute("aria-expanded") === "true";
+      header.classList.toggle("is-hidden", !menuOpen && y > 400 && y > lastY + 2);
+      if (y < lastY - 2) header.classList.remove("is-hidden");
+      lastY = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    // показываем шапку, когда внутрь попадает фокус с клавиатуры
+    header.addEventListener("focusin", () => header.classList.remove("is-hidden"));
+  }
+
+  if (toggle && menu && label) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute("aria-expanded", String(open));
+      menu.hidden = !open;
+      label.textContent = open ? "Close" : "Menu";
+      document.documentElement.classList.toggle("menu-open", open);
+      header?.classList.toggle("is-solid", open || window.scrollY > 24);
+    };
+    toggle.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+    menu.addEventListener("click", (e) => {
+      if ((e.target as HTMLElement).closest("a")) setOpen(false);
+    });
+    window.matchMedia("(min-width: 860px)").addEventListener("change", (e) => e.matches && setOpen(false));
+  }
+</script>

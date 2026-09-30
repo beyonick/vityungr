@@ -1,0 +1,42 @@
+---
+import { getImage, Image } from "astro:assets";
+import { loadImage } from "../../lib/works";
+
+interface Props {
+  src: string; // путь внутри src/assets/works
+  alt: string;
+  sizes: string;
+  widths?: number[];
+  loading?: "lazy" | "eager";
+  priority?: boolean;
+  class?: string;
+  /** Картина участвует в «выезде снизу» при наведении и открывается на весь экран по клику */
+  zoom?: { title: string; meta?: string; href?: string; hrefLabel?: string };
+}
+
+const { src, alt, sizes, widths = [360, 640, 960, 1400], loading = "lazy", priority = false, class: className, zoom } = Astro.props;
+const image = await loadImage(src);
+const usable = widths.filter((w) => w <= image.width);
+
+// Большая версия для выезда на всю ширину и полноэкранного просмотра
+const full = zoom ? await getImage({ src: image, width: Math.min(image.width, 1600), format: "webp", quality: 84 }) : null;
+---
+
+<Image
+  src={image}
+  alt={alt}
+  widths={usable.length ? usable : [image.width]}
+  sizes={sizes}
+  format="webp"
+  quality={80}
+  loading={priority ? "eager" : loading}
+  fetchpriority={priority ? "high" : undefined}
+  decoding="async"
+  class={className}
+  data-art={full?.src}
+  data-art-ratio={zoom ? (image.width / image.height).toFixed(4) : undefined}
+  data-art-title={zoom?.title}
+  data-art-meta={zoom?.meta}
+  data-art-href={zoom?.href}
+  data-art-href-label={zoom?.hrefLabel}
+/>

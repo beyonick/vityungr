@@ -1,0 +1,34 @@
+---
+import { fieldNotes } from "../../data/series";
+import { findWork, mediumSize, priceOrState, ratioOf, workHref } from "../../lib/works";
+import SectionHead from "../SectionHead.astro";
+import Wall, { type WallItem } from "../Wall.astro";
+
+const items: WallItem[] = fieldNotes.map((n) => {
+  const w = findWork(n.work);
+  return {
+    src: w.images[0].src,
+    ratio: ratioOf(w),
+    alt: n.title,
+    href: workHref(w),
+    title: n.title,
+    meta: n.place,
+    price: priceOrState(w),
+    note: n.text,
+    viewMeta: [mediumSize(w), priceOrState(w)].filter(Boolean).join(" · "),
+  };
+});
+---
+
+<section class="section" id="notes" aria-labelledby="notes-title">
+  <SectionHead
+    n="05"
+    label="Field notes"
+    aside="From my Instagram captions"
+    title="Painting outdoors never goes quietly"
+    titleId="notes-title"
+  >
+    <p>Frost, curious cows and neighbours with coffee. A few stories behind the paintings, almost word for word.</p>
+  </SectionHead>
+  <Wall items={items} height={250} single />
+</section>

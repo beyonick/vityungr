@@ -1,0 +1,226 @@
+---
+// «Обо мне»: заголовок по диагонали — первая строка сверху слева, вторая снизу справа,
+// между ними фото и текст. При скролле строки съезжаются навстречу, фото плывут с разной скоростью.
+import { Image } from "astro:assets";
+import windowPhoto from "../../assets/vitya/painting-by-window.jpg";
+import snow from "../../assets/vitya/plein-air-snow.jpg";
+---
+
+<section class="section about" id="about" aria-labelledby="about-title" data-about>
+  <div class="sec-head about__head">
+    <div class="sec-head__meta label" data-reveal="text">
+      <span><span class="sec-head__n num">06</span>About</span>
+      <span class="muted">Moscow Academic Art College, 2021</span>
+    </div>
+  </div>
+
+  <div class="about__grid pad">
+    <h2 id="about-title" class="about__title display">
+      <span class="about__line about__line--1" data-about-line="-1" data-reveal="text">Hi, I’m Viktor.</span>
+      <span class="about__line about__line--2" data-about-line="1" data-reveal="text"
+        ><em>You can call me Vityungr.</em></span
+      >
+    </h2>
+
+    <figure class="about__photo about__photo--snow" data-about-drift="-0.06" data-reveal>
+      <Image
+        src={snow}
+        alt="Viktor painting at an easel in a snowy forest, wearing a red hood"
+        widths={[480, 800, 1200]}
+        sizes="(max-width: 859px) 78vw, 30vw"
+        format="webp"
+        quality={80}
+      />
+      <figcaption class="about__cap muted">Painting in the snow</figcaption>
+    </figure>
+
+    <figure class="about__photo about__photo--window" data-about-drift="0.05" data-reveal>
+      <Image
+        src={windowPhoto}
+        alt="Viktor painting by an open window with mountains outside"
+        widths={[400, 700, 1000]}
+        sizes="(max-width: 859px) 62vw, 26vw"
+        format="webp"
+        quality={80}
+      />
+      <figcaption class="about__cap muted">Painting by the window</figcaption>
+    </figure>
+
+    <div class="about__text" data-reveal="text">
+      <p>
+        I was born in Russia and graduated from the Moscow Academic Art College in 2021. In 2022 I moved abroad, and since
+        then I’ve lived in several countries, each with its own nature and culture.
+      </p>
+      <p class="muted">
+        Most of my work is painted outdoors, in rain, heat and −18°C. Larger pieces I finish in the studio, in tempera,
+        and each of them takes a month or more.
+      </p>
+      <p class="muted">
+        Right now I’m based in Montenegro, where I paint, ship my work around the world and collaborate with galleries.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__head {
+    margin-bottom: clamp(32px, 4vw, 56px);
+  }
+
+  .about__grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(16px, 1.8vw, 28px);
+    row-gap: clamp(28px, 3.5vw, 56px);
+    align-items: start;
+  }
+
+  /* Заголовок растянут по всей сетке: строки стоят в разных углах */
+  .about__title {
+    display: contents;
+    font-size: clamp(3rem, 0.9rem + 6.2vw, 8.75rem);
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+  }
+
+  .about__line {
+    display: block;
+    font-size: clamp(3rem, 0.9rem + 6.2vw, 8.75rem);
+    white-space: nowrap;
+  }
+
+  .about__line--1 {
+    grid-column: 1 / span 8;
+    grid-row: 1;
+  }
+
+  .about__line--2 {
+    grid-column: 3 / -1;
+    grid-row: 3;
+    justify-self: end;
+    text-align: right;
+    margin-top: -0.12em;
+  }
+
+  .about__line--2 em {
+    font-style: italic;
+    font-variation-settings: "SOFT" 100, "WONK" 1;
+  }
+
+  .about__photo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Большое фото справа, вертикальный кадр — от первой строки до второй */
+  .about__photo--snow {
+    grid-column: 9 / span 4;
+    grid-row: 1 / span 2;
+    margin-top: clamp(24px, 3vw, 48px);
+  }
+
+  .about__photo--snow :global(img) {
+    aspect-ratio: 4 / 5;
+    object-position: 58% 50%;
+  }
+
+  /* Маленькое фото слева, горизонтальный кадр, чуть ниже первой строки */
+  .about__photo--window {
+    grid-column: 2 / span 3;
+    grid-row: 2;
+    margin-top: clamp(8px, 2vw, 32px);
+  }
+
+  .about__photo--window :global(img) {
+    aspect-ratio: 5 / 4;
+    object-position: 40% 50%;
+  }
+
+  .about__cap {
+    margin-top: 10px;
+    font-size: var(--t-small);
+  }
+
+  .about__text {
+    grid-column: 5 / span 3;
+    grid-row: 2;
+    align-self: end;
+    max-width: 38ch;
+  }
+
+  .about__text p + p {
+    margin-top: 0.8em;
+  }
+
+  @media (max-width: 859px) {
+    .about__grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .about__line {
+      white-space: normal;
+    }
+
+    .about__line--1 {
+      grid-column: 1 / -1;
+    }
+
+    .about__photo--snow {
+      grid-column: 2 / -1;
+      grid-row: 2;
+      margin-top: 0;
+    }
+
+    .about__line--2 {
+      grid-column: 1 / -1;
+      grid-row: 3;
+    }
+
+    .about__photo--window {
+      grid-column: 1 / span 4;
+      grid-row: 4;
+      margin-top: 0;
+    }
+
+    .about__text {
+      grid-column: 1 / -1;
+      grid-row: 5;
+    }
+  }
+</style>
+
+<script>
+  import { scroller } from "../../scripts/scroll";
+
+  // Строки заголовка съезжаются навстречу, фото плывут с разной скоростью — только пока раздел на экране
+  const section = document.querySelector<HTMLElement>("[data-about]");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (section && !reduced) {
+    const lines = Array.from(section.querySelectorAll<HTMLElement>("[data-about-line]"));
+    const photos = Array.from(section.querySelectorAll<HTMLElement>("[data-about-drift]"));
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const r = section.getBoundingClientRect();
+      const vh = window.innerHeight;
+      if (r.bottom < -200 || r.top > vh + 200) return;
+      // 0 — раздел только показался снизу, 1 — его середина в центре экрана
+      const p = Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.5 + r.height * 0.5)));
+      const rest = 1 - p;
+      lines.forEach((el) => {
+        el.style.translate = `${(Number(el.dataset.aboutLine) * rest * 8).toFixed(2)}vw 0`;
+      });
+      const center = r.top + r.height / 2 - vh / 2;
+      photos.forEach((el) => {
+        el.style.translate = `0 ${(center * Number(el.dataset.aboutDrift)).toFixed(1)}px`;
+      });
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    scroller.onScroll(schedule);
+    window.addEventListener("resize", schedule);
+    update();
+  }
+</script>

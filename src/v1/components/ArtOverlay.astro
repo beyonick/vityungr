@@ -1,0 +1,145 @@
+---
+import Icon from "./Icon.astro";
+---
+
+<!-- Выезд картины снизу при наведении (только мышь, декоративный) -->
+<div class="peek" aria-hidden="true" data-peek>
+  <img class="peek__img" alt="" data-peek-img />
+</div>
+
+<!-- Полноэкранный просмотр по клику -->
+<div class="viewer" role="dialog" aria-modal="true" aria-labelledby="viewer-title" hidden data-viewer>
+  <div class="viewer__backdrop" data-viewer-close></div>
+  <figure class="viewer__figure">
+    <img class="viewer__img" alt="" data-viewer-img />
+    <figcaption class="viewer__caption" data-viewer-caption>
+      <div>
+        <p id="viewer-title" class="viewer__title display" data-viewer-title></p>
+        <p class="viewer__meta muted" data-viewer-meta></p>
+      </div>
+      <a class="link-arrow" href="/" data-viewer-link hidden>
+        <span data-viewer-link-label>View the work</span>
+        <Icon name="arrow-right-linear" />
+      </a>
+    </figcaption>
+  </figure>
+  <button class="viewer__close caps" type="button" data-viewer-close>Close <span aria-hidden="true">✕</span></button>
+</div>
+
+<style>
+  .peek {
+    position: fixed;
+    left: -3vw;
+    right: -3vw;
+    bottom: 0;
+    z-index: 40;
+    pointer-events: none;
+    transform-origin: 50% 100%;
+    visibility: hidden;
+  }
+
+  .peek__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    box-shadow:
+      0 -2px 4px rgb(40 30 20 / 0.12),
+      0 -30px 70px -18px rgb(40 30 20 / 0.45);
+  }
+
+  .viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    display: grid;
+    place-items: center;
+    padding: clamp(56px, 7vh, 88px) var(--gutter) clamp(20px, 3vh, 32px);
+  }
+
+  .viewer[hidden] {
+    display: none;
+  }
+
+  .viewer__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgb(236 232 223 / 0.97);
+    cursor: zoom-out;
+  }
+
+  .viewer__figure {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+    max-width: 100%;
+    max-height: 100%;
+    pointer-events: none;
+  }
+
+  .viewer__img {
+    display: block;
+    max-width: min(94vw, 1600px);
+    max-height: calc(100svh - 190px);
+    width: auto;
+    height: auto;
+    box-shadow: var(--shadow-board-lift);
+    will-change: transform;
+  }
+
+  .viewer__caption {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 16px 32px;
+    width: 100%;
+    pointer-events: auto;
+  }
+
+  .viewer__title {
+    font-size: clamp(1.3rem, 1rem + 1vw, 2rem);
+    line-height: 1.1;
+  }
+
+  .viewer__meta {
+    margin-top: 4px;
+    font-size: var(--t-small);
+  }
+
+  .viewer__close {
+    position: absolute;
+    top: 12px;
+    right: var(--gutter);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--f-sans);
+    cursor: pointer;
+  }
+
+  .viewer__close:hover {
+    border-color: var(--ink);
+  }
+
+  @media (max-width: 599px) {
+    .viewer__caption {
+      flex-direction: column;
+      align-items: start;
+    }
+  }
+
+  /* Картины с просмотром — курсор-лупа */
+  :global([data-art]) {
+    cursor: zoom-in;
+  }
+</style>
+
+<script>
+  import "../scripts/art";
+</script>

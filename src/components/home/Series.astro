@@ -1,0 +1,51 @@
+---
+import { series } from "../../data/series";
+import { coverOf, mediumSize, priceOrState, ratioOf, worksIn } from "../../lib/works";
+import SectionHead from "../SectionHead.astro";
+import Wall, { type WallItem } from "../Wall.astro";
+
+// Семь серий в две ровные строки: 3 и 4. Москва и поездки на главную не попадают.
+const shown = series.filter((s) => s.slug !== "moscow" && s.slug !== "random");
+const items: WallItem[] = shown.map((s) => {
+  const cover = coverOf(s.slug, s.cover);
+  const count = worksIn(s.slug).length;
+  return {
+    src: cover.images[0].src,
+    ratio: ratioOf(cover),
+    alt: `${cover.title}, from the ${s.title} series`,
+    href: `/works/${s.slug}`,
+    title: s.title,
+    price: s.years,
+    meta: `${s.places} · ${count} works`,
+    viewTitle: cover.title,
+    viewMeta: [`${s.title} series`, mediumSize(cover), priceOrState(cover)].filter(Boolean).join(" · "),
+    viewLinkLabel: `See the ${s.title} series`,
+  };
+});
+const rows = [items.slice(0, 3), items.slice(3)];
+---
+
+<section class="section" id="series" aria-labelledby="series-title">
+  <SectionHead
+    n="01"
+    label="Series"
+    aside={`${shown.length} places · 2021–2026`}
+    title="Every series grows out of a place I’ve lived in or travelled to."
+    titleId="series-title"
+  >
+    <p>
+      I try to catch my connection with each place, so paintings from different countries end up looking completely
+      different. Montenegro is where I live now; the older series are from Russia and my first years abroad.
+    </p>
+  </SectionHead>
+  <div class="series__rows">
+    {rows.map((row) => <Wall items={row} height={330} single wrapMobile />)}
+  </div>
+</section>
+
+<style>
+  .series__rows {
+    display: grid;
+    row-gap: clamp(36px, 3.4vw, 52px);
+  }
+</style>

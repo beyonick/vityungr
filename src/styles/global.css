@@ -1,0 +1,337 @@
+/* ---------- Токены ---------- */
+:root {
+  --bg: #fff;
+  --ink: #151515;
+  --ink-2: #737373; /* вторичный текст, AA на белом */
+  --ink-3: #a3a3a3; /* только для декоративных меток */
+  --line: rgb(0 0 0 / 0.1);
+
+  --f-serif: "Fraunces Variable", "Iowan Old Style", Georgia, serif;
+  --f-sans: "Schibsted Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* текст — небольшой, главное на странице картины */
+  --t-label: 0.656rem; /* 10.5px, капс */
+  --t-small: 0.75rem; /* 12px */
+  --t-text: 0.875rem; /* 14px */
+  --t-title: 0.9375rem; /* 15px, курсив — названия картин */
+  --t-h2: clamp(2.25rem, 1.2rem + 3.6vw, 4.75rem);
+  --t-h1: clamp(1.9rem, 1.1rem + 2.7vw, 3.5rem);
+
+  --gutter: clamp(18px, 3.2vw, 48px);
+  --section: clamp(140px, 15vw, 240px);
+
+  --shadow-rest: 0 1px 1px rgb(0 0 0 / 0.05), 0 3px 10px -6px rgb(0 0 0 / 0.14);
+  --shadow-lift: 0 2px 3px rgb(0 0 0 / 0.06), 0 22px 34px -18px rgb(0 0 0 / 0.34), 0 48px 80px -40px rgb(0 0 0 / 0.36);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
+
+  color-scheme: light;
+}
+
+/* ---------- База ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-sans);
+  font-size: var(--t-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+p,
+figure,
+blockquote,
+ol,
+ul {
+  margin: 0;
+}
+
+ol,
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 4px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+html.viewer-open,
+html.menu-open {
+  overflow: hidden;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: -100px;
+  z-index: 200;
+  padding: 8px 14px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: var(--t-small);
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ---------- Типографика ---------- */
+.label {
+  font-size: var(--t-label);
+  font-weight: 540;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.serif {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-weight: 360;
+  font-variation-settings: "SOFT" 100, "WONK" 1;
+  letter-spacing: -0.005em;
+}
+
+.muted {
+  color: var(--ink-2);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Текстовая ссылка: тонкая линия, на наведении дорисовывается */
+.tlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  min-height: 32px;
+  background: linear-gradient(currentColor, currentColor) 0 calc(50% + 0.75em) / 0 1px no-repeat;
+  transition: background-size 0.6s var(--ease-out);
+}
+
+.tlink::after {
+  content: "→";
+  transition: transform 0.5s var(--ease-out);
+}
+
+.tlink[target="_blank"]::after {
+  content: "↗";
+}
+
+.tlink:hover {
+  background-size: 100% 1px;
+}
+
+.tlink:hover::after {
+  transform: translateX(3px);
+}
+
+.tlink[target="_blank"]:hover::after {
+  transform: translate(2px, -2px);
+}
+
+/* ---------- Раскладка ---------- */
+.section {
+  padding-top: var(--section);
+}
+
+.pad {
+  padding-inline: var(--gutter);
+}
+
+.display {
+  font-family: var(--f-serif);
+  font-weight: 340;
+  font-variation-settings: "SOFT" 100, "WONK" 0;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+/* Шапка раздела: линия, номер и название, заголовок и короткий текст */
+.sec-head {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(16px, 1.8vw, 28px);
+  row-gap: clamp(20px, 2.4vw, 36px);
+  margin-inline: var(--gutter);
+  margin-bottom: clamp(40px, 4.5vw, 68px);
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.sec-head__meta {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.sec-head__n {
+  display: inline-block;
+  min-width: 3em;
+  color: var(--ink-3);
+}
+
+.sec-head__title {
+  grid-column: 1 / span 8;
+  grid-row: 2;
+  font-size: var(--t-h2);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+/* текст ниже заголовка и правее — по диагонали */
+.sec-head__text {
+  grid-column: 9 / span 4;
+  grid-row: 3;
+  align-self: start;
+  max-width: 46ch;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.sec-head__text p + p {
+  margin-top: 0.8em;
+}
+
+.sec-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 32px;
+  margin-top: clamp(40px, 4.5vw, 64px);
+  padding-inline: var(--gutter);
+  font-size: var(--t-small);
+}
+
+@media (max-width: 859px) {
+  .sec-head__title,
+  .sec-head__text {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------- Появление при скролле ---------- */
+html.js:not(.no-motion) [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 72px, 0);
+}
+
+html.js:not(.no-motion) [data-reveal="text"] {
+  transform: translate3d(0, 18px, 0);
+}
+
+html.js:not(.no-motion) [data-reveal="rise"] {
+  transform: translate3d(0, 24vh, 0);
+}
+
+html.js:not(.no-motion) [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 1.2s var(--ease-soft) var(--d, 0ms),
+    transform 1.7s var(--ease-out) var(--d, 0ms);
+}
+
+html.js:not(.no-motion) [data-reveal="rise"].is-in {
+  transition:
+    opacity 1.4s var(--ease-soft) var(--d, 0ms),
+    transform 2.2s var(--ease-out) var(--d, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ---------- Наведение: остальные картины гаснут до контура ----------
+   html.has-hover и .pt.is-hovered ставит scripts/art.ts. Подписи остаются как есть. */
+.pt__frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 1px solid var(--line);
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-soft);
+  pointer-events: none;
+}
+
+.pt__frame img {
+  transition: opacity 0.5s var(--ease-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html.has-hover .pt:not(.is-hovered) .pt__frame {
+    box-shadow: none;
+  }
+
+  html.has-hover .pt:not(.is-hovered) .pt__frame img {
+    opacity: 0.04;
+  }
+
+  html.has-hover .pt:not(.is-hovered) .pt__frame::before {
+    opacity: 1;
+  }
+}

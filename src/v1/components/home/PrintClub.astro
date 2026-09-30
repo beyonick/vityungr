@@ -1,0 +1,148 @@
+---
+import { printClub } from "../../../data/site";
+import { prints } from "../../../lib/works";
+import Artwork from "../Artwork.astro";
+import Icon from "../Icon.astro";
+
+const club = prints.find((p) => p.kind === "print-club")!;
+const steps = [
+  { title: "I paint from life", text: "All month I work outdoors, on new pieces from real observation." },
+  { title: "I choose the best one", text: "At the end of the month one painting becomes the club print." },
+  { title: "It comes by post", text: "A 5×7 print, signed and limited, in your mailbox. Collect a whole year." },
+];
+---
+
+<section class="section club" id="print-club" aria-labelledby="club-title">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="caps section-head__index"><span class="muted">04</span> Print Club</p>
+      <p class="caps muted">Monthly subscription</p>
+    </div>
+
+    <div class="club__grid">
+      <div class="club__lead">
+        <p class="club__figure display" aria-hidden="true"><span class="num">1</span></p>
+        <p class="caps club__figure-label">print a month, from a painting made from life</p>
+        <figure class="club__photo" data-reveal>
+          <Artwork
+            src={club.images[0].src}
+            alt="Print Club envelopes with signed prints, ready to be posted"
+            sizes="(max-width: 859px) 92vw, 40vw"
+          />
+        </figure>
+      </div>
+
+      <div class="club__body">
+        <h2 id="club-title" class="display club__title" data-split>Vityungr Print Club</h2>
+        <p class="lede muted" data-reveal>
+          The easiest way to own my work. Every month members get a print of the best painting I made that month.
+        </p>
+
+        <ol class="club__steps" role="list">
+          {
+            steps.map((s, i) => (
+              <li class="club__step" data-reveal>
+                <span class="caps muted num">0{i + 1}</span>
+                <div>
+                  <h3 class="club__step-title">{s.title}</h3>
+                  <p class="muted">{s.text}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="club__cta" data-reveal>
+          <a class="btn" href={printClub.patreon} rel="noopener" target="_blank">
+            Join on Patreon <Icon name="arrow-right-up-linear" /><span class="sr-only"> (opens in a new tab)</span>
+          </a>
+          <a class="btn btn--ghost" href={printClub.paypal} rel="noopener" target="_blank">
+            Join with PayPal <Icon name="arrow-right-up-linear" /><span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </div>
+        <p class="club__note muted">Patreon members also get process timelapses and notes on how each piece was painted.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .club__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+    gap: clamp(32px, 6vw, 120px);
+    align-items: start;
+  }
+
+  .club__figure {
+    font-size: clamp(9rem, 4rem + 18vw, 22rem);
+    line-height: 0.72;
+    letter-spacing: -0.06em;
+    color: var(--accent);
+    font-variation-settings: "SOFT" 100, "WONK" 1;
+  }
+
+  .club__figure-label {
+    max-width: 22ch;
+    margin-top: 18px;
+  }
+
+  .club__photo {
+    margin-top: clamp(28px, 4vw, 56px);
+    box-shadow: var(--shadow-board);
+  }
+
+  .club__photo img {
+    width: 100%;
+  }
+
+  .club__title {
+    font-size: var(--t-h2);
+    margin-bottom: 24px;
+  }
+
+  .club__steps {
+    margin-top: clamp(32px, 4vw, 52px);
+    border-top: 1px solid var(--line);
+  }
+
+  .club__step {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 12px;
+    padding-block: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .club__step .caps {
+    padding-top: 0.35em;
+  }
+
+  .club__step-title {
+    font-family: var(--f-display);
+    font-weight: 400;
+    font-size: var(--t-h3);
+    font-variation-settings: "SOFT" 100;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .club__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 36px;
+  }
+
+  .club__note {
+    margin-top: 16px;
+    font-size: var(--t-small);
+    max-width: 48ch;
+  }
+
+  @media (max-width: 859px) {
+    .club__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

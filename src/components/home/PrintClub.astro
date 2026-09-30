@@ -1,0 +1,137 @@
+---
+import { Image } from "astro:assets";
+import { printClub } from "../../data/site";
+import { loadImage, prints } from "../../lib/works";
+import SectionHead from "../SectionHead.astro";
+
+const club = prints.find((p) => p.kind === "print-club")!;
+const photo = await loadImage(club.images[0].src);
+const steps = [
+  { title: "I paint from life", text: "All month I work outdoors, on new pieces from real observation." },
+  { title: "I choose the best one", text: "At the end of the month one painting becomes the club print." },
+  { title: "It comes by post", text: "A 5×7 print, signed and limited, in your mailbox. Collect a whole year." },
+];
+---
+
+<section class="section club" id="print-club" aria-labelledby="club-title">
+  <SectionHead n="04" label="Print Club" aside="Monthly subscription" title="Vityungr Print Club" titleId="club-title">
+    <p>
+      The easiest way to own my work. Every month members get a print of the best painting I made that month.
+    </p>
+  </SectionHead>
+
+  <div class="club__body pad">
+    <figure class="club__photo" data-reveal>
+      <Image
+        src={photo}
+        alt="Print Club envelopes with signed prints, ready to be posted"
+        widths={[480, 800, 1200]}
+        sizes="(max-width: 859px) 92vw, 44vw"
+        format="webp"
+        quality={80}
+      />
+    </figure>
+
+    <div class="club__text" data-reveal="text">
+      <ol class="club__steps">
+        {
+          steps.map((s, i) => (
+            <li>
+              <span class="label num club__n">0{i + 1}</span>
+              <div>
+                <h3 class="club__step display">{s.title}</h3>
+                <p class="muted">{s.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+      <ul class="club__links">
+        <li>
+          <a class="tlink" href={printClub.patreon} rel="noopener" target="_blank">
+            Join on Patreon<span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </li>
+        <li>
+          <a class="tlink" href={printClub.paypal} rel="noopener" target="_blank">
+            Join with PayPal<span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </li>
+      </ul>
+      <p class="club__note muted">Patreon members also get process timelapses and notes on how each piece was painted.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .club__body {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(16px, 1.8vw, 28px);
+    align-items: end;
+  }
+
+  .club__photo {
+    grid-column: 1 / span 5;
+    box-shadow: var(--shadow-rest);
+  }
+
+  .club__photo :global(img) {
+    width: 100%;
+  }
+
+  .club__text {
+    grid-column: 7 / span 6;
+  }
+
+  .club__steps {
+    border-top: 1px solid var(--line);
+  }
+
+  .club__steps li {
+    display: grid;
+    grid-template-columns: clamp(48px, 5vw, 80px) minmax(0, 1fr);
+    padding-block: clamp(20px, 2.4vw, 32px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .club__n {
+    padding-top: 0.9em;
+    color: var(--ink-3);
+  }
+
+  .club__step {
+    font-size: clamp(1.6rem, 1rem + 2vw, 2.9rem);
+    line-height: 1.05;
+    margin-bottom: 10px;
+  }
+
+  .club__steps p {
+    font-size: 1rem;
+    max-width: 44ch;
+  }
+
+  .club__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 28px;
+    margin-top: 24px;
+    font-size: var(--t-small);
+  }
+
+  .club__note {
+    margin-top: 10px;
+    font-size: var(--t-small);
+    max-width: 44ch;
+  }
+
+  @media (max-width: 859px) {
+    .club__body {
+      display: block;
+    }
+
+    .club__text {
+      margin-top: 40px;
+    }
+  }
+</style>

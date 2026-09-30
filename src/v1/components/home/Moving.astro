@@ -1,0 +1,192 @@
+---
+import { animationPost } from "../../../data/site";
+import { prints } from "../../../lib/works";
+import Artwork from "../Artwork.astro";
+import Icon from "../Icon.astro";
+
+// Два соседних кадра анимации «Swallow Island» (фото принтов-кадров)
+const swallow = prints.find((p) => p.kind === "animation" && p.title === "Swallow Island")!;
+const frames = [swallow.images[2], swallow.images[3]];
+const animationPrints = prints.filter((p) => p.kind === "animation");
+const price = animationPrints[0]?.price_eur;
+---
+
+<section class="section moving" aria-labelledby="moving-title">
+  <div class="wrap moving__grid">
+    <figure class="moving__media" data-flipbook>
+      <div class="moving__frames">
+        {
+          frames.map((f, i) => (
+            <div class="moving__frame" data-frame={i} aria-hidden={i > 0 ? "true" : undefined}>
+              <Artwork
+                src={f.src}
+                alt={i === 0 ? "A frame from the Swallow Island animation: a rocky island in the sea with swallows" : ""}
+                sizes="(max-width: 859px) 92vw, 50vw"
+                widths={[480, 800, 1200, 1600]}
+              />
+            </div>
+          ))
+        }
+      </div>
+      <figcaption class="moving__caption">
+        <span class="caps muted">Swallow Island · two frames of 30 seconds</span>
+        <button class="moving__toggle caps" type="button" aria-pressed="false" data-flipbook-toggle hidden>
+          Pause
+        </button>
+      </figcaption>
+    </figure>
+
+    <div class="moving__text">
+      <div class="section-head">
+        <p class="caps section-head__index"><span class="muted">03</span> Animated paintings</p>
+      </div>
+      <h2 id="moving-title" class="display moving__title" data-split>A month of work for thirty seconds</h2>
+      <div class="prose" data-reveal>
+        <p>
+          I’ve started bringing my paintings to life, frame by frame. The last one took over a month and ended up
+          thirty seconds long. I honestly fell in love with the process.
+        </p>
+        <p>
+          Then I broke the animations down into single frames. Each animation print is one of them, so the moving parts
+          sit in a different place for every collector.
+        </p>
+      </div>
+      <div class="moving__cta" data-reveal>
+        <a class="btn" href="/prints#animation">
+          Animation prints {price && <span class="num muted-on-ink">€{price}</span>}
+          <Icon name="arrow-right-linear" />
+        </a>
+        <a class="link-arrow" href={animationPost} rel="noopener" target="_blank">
+          Watch it on Instagram <Icon name="arrow-right-up-linear" /><span class="sr-only"> (opens in a new tab)</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .moving {
+    background: var(--panel);
+  }
+
+  .moving__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: clamp(32px, 5vw, 96px);
+    align-items: center;
+  }
+
+  .moving__frames {
+    position: relative;
+    display: grid;
+    box-shadow: var(--shadow-board-lift);
+  }
+
+  .moving__frame {
+    grid-area: 1 / 1;
+  }
+
+  .moving__frame img {
+    width: 100%;
+  }
+
+  /* кадры переключаются шагом, как во флипбуке */
+  :global(html.js) .moving__frame[data-frame="1"] {
+    visibility: hidden;
+  }
+
+  :global(html.js) [data-flipbook].is-alt .moving__frame[data-frame="1"] {
+    visibility: visible;
+  }
+
+  .moving__caption {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .moving__toggle {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--f-sans);
+    cursor: pointer;
+  }
+
+  .moving__toggle:hover {
+    border-color: var(--ink);
+  }
+
+  .moving__text .section-head {
+    margin-bottom: 28px;
+  }
+
+  .moving__title {
+    font-size: var(--t-h2);
+    max-width: 13ch;
+    margin-bottom: 28px;
+  }
+
+  .moving__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 26px;
+    margin-top: 32px;
+  }
+
+  .muted-on-ink {
+    opacity: 0.6;
+  }
+
+  @media (max-width: 859px) {
+    .moving__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .moving__text {
+      order: -1;
+    }
+  }
+</style>
+
+<script>
+  const book = document.querySelector<HTMLElement>("[data-flipbook]");
+  const toggle = document.querySelector<HTMLButtonElement>("[data-flipbook-toggle]");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  if (book && toggle && !reduced.matches) {
+    let timer: number | undefined;
+    let paused = false;
+    let inView = false;
+
+    const tick = () => book.classList.toggle("is-alt");
+    const run = () => {
+      stop();
+      if (!paused && inView && !document.hidden) timer = window.setInterval(tick, 480);
+    };
+    const stop = () => {
+      if (timer) window.clearInterval(timer);
+      timer = undefined;
+    };
+
+    toggle.hidden = false;
+    toggle.addEventListener("click", () => {
+      paused = !paused;
+      toggle.setAttribute("aria-pressed", String(paused));
+      toggle.textContent = paused ? "Play" : "Pause";
+      run();
+    });
+
+    new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      run();
+    }).observe(book);
+    document.addEventListener("visibilitychange", run);
+  }
+</script>

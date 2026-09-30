@@ -1,0 +1,27 @@
+---
+// Шапка раздела: линия, номер и название, справа приписка; ниже заголовок и короткий текст (слот).
+interface Props {
+  n: string;
+  label: string;
+  aside?: string;
+  title: string;
+  titleId: string;
+}
+
+const { n, label, aside, title, titleId } = Astro.props;
+---
+
+<header class="sec-head">
+  <div class="sec-head__meta label" data-reveal="text">
+    <span><span class="sec-head__n num">{n}</span>{label}</span>
+    {aside && <span class="muted">{aside}</span>}
+  </div>
+  <h2 id={titleId} class="sec-head__title display" data-reveal="text">{title}</h2>
+  {
+    Astro.slots.has("default") && (
+      <div class="sec-head__text" data-reveal="text">
+        <slot />
+      </div>
+    )
+  }
+</header>

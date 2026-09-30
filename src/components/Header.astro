@@ -1,0 +1,235 @@
+---
+import { social } from "../data/site";
+
+interface Props {
+  home?: boolean;
+}
+
+// Меню ведёт к разделам главной; на других страницах — на главную к нужному разделу
+const { home = false } = Astro.props;
+const base = home ? "" : "/";
+const links = [
+  { label: "Works", href: "/works" },
+  { label: "Prints", href: `${base}#prints` },
+  { label: "Print Club", href: `${base}#print-club` },
+  { label: "About", href: `${base}#about` },
+  { label: "Contact", href: `${base}#contact` },
+];
+const instagram = social.find((s) => s.label === "Instagram")!;
+---
+
+<header class="hdr" data-header>
+  <a class="hdr__mark serif" href={home ? "#top" : "/"} aria-label="Vityungr, home">Vityungr</a>
+
+  <nav class="hdr__nav" aria-label="Main">
+    <ul>
+      {
+        links.map((l) => (
+          <li>
+            <a class="label" href={l.href}>
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+      <li>
+        <a class="label" href={instagram.href} rel="noopener" target="_blank">
+          Instagram ↗<span class="sr-only"> (opens in a new tab)</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <button class="hdr__toggle label" type="button" aria-expanded="false" aria-controls="menu" data-menu-toggle>
+    <span data-menu-label>Menu</span>
+  </button>
+
+  <div class="menu" id="menu" hidden data-menu>
+    <ul>
+      {
+        links.map((l) => (
+          <li>
+            <a class="serif" href={l.href}>
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <ul class="menu__social">
+      {
+        social.map((s) => (
+          <li>
+            <a class="label" href={s.href} rel="noopener" target="_blank">
+              {s.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</header>
+
+<style>
+  .hdr {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 60;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 64px;
+    padding-inline: var(--gutter);
+    transition:
+      transform 0.7s var(--ease-out),
+      background-color 0.5s var(--ease-soft);
+  }
+
+  .hdr.is-solid,
+  :global(html.hero-peek) .hdr {
+    background: rgb(255 255 255 / 0.9);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .hdr.is-hidden {
+    transform: translate3d(0, -100%, 0);
+  }
+
+  :global(html.viewer-open) .hdr {
+    transform: translate3d(0, -100%, 0);
+  }
+
+  .hdr__mark {
+    position: relative;
+    z-index: 2;
+    font-size: 1.0625rem;
+    line-height: 1;
+    padding-block: 10px;
+  }
+
+  .hdr__nav ul {
+    display: flex;
+    gap: clamp(18px, 2.4vw, 36px);
+  }
+
+  .hdr__nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    color: var(--ink-2);
+    transition: color 0.3s var(--ease-soft);
+  }
+
+  .hdr__nav a:hover {
+    color: var(--ink);
+  }
+
+  .hdr__toggle {
+    display: none;
+    position: relative;
+    z-index: 2;
+    min-height: 44px;
+    min-width: 56px;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 40px;
+    padding: 80px var(--gutter) 40px;
+    background: var(--bg);
+  }
+
+  .menu[hidden] {
+    display: none;
+  }
+
+  .menu a.serif {
+    display: block;
+    padding-block: 6px;
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+
+  .menu__social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 22px;
+  }
+
+  .menu__social a {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    color: var(--ink-2);
+  }
+
+  @media (max-width: 859px) {
+    .hdr__nav {
+      display: none;
+    }
+
+    .hdr__toggle {
+      display: inline-flex;
+    }
+  }
+</style>
+
+<script>
+  import { scroller } from "../scripts/scroll";
+
+  const header = document.querySelector<HTMLElement>("[data-header]");
+  const toggle = document.querySelector<HTMLButtonElement>("[data-menu-toggle]");
+  const menu = document.querySelector<HTMLElement>("[data-menu]");
+  const label = document.querySelector<HTMLElement>("[data-menu-label]");
+  const isOpen = () => toggle?.getAttribute("aria-expanded") === "true";
+
+  if (header) {
+    let lastY = window.scrollY;
+    const onScroll = (y: number) => {
+      header.classList.toggle("is-solid", y > 24 && !isOpen());
+      if (!isOpen()) {
+        if (y > 320 && y > lastY + 2) header.classList.add("is-hidden");
+        else if (y < lastY - 2 || y < 320) header.classList.remove("is-hidden");
+      }
+      lastY = y;
+    };
+    scroller.onScroll(onScroll);
+    onScroll(window.scrollY);
+    header.addEventListener("focusin", () => header.classList.remove("is-hidden"));
+  }
+
+  if (toggle && menu && label) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute("aria-expanded", String(open));
+      menu.hidden = !open;
+      label.textContent = open ? "Close" : "Menu";
+      document.documentElement.classList.toggle("menu-open", open);
+      header?.classList.toggle("is-solid", !open && window.scrollY > 24);
+      if (open) scroller.lock();
+      else scroller.unlock();
+    };
+    toggle.addEventListener("click", () => setOpen(!isOpen()));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && isOpen()) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+    menu.addEventListener("click", (e) => {
+      if ((e.target as HTMLElement).closest("a")) setOpen(false);
+    });
+    window.matchMedia("(min-width: 860px)").addEventListener("change", (e) => e.matches && isOpen() && setOpen(false));
+  }
+</script>

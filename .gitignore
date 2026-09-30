@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.astro/
+
+# Сырой дамп со старого сайта (tools/scrape_tilda.py). Для сборки не нужен.
+/works/
+
+# Веб-версии фото работ лежат в Selectel, перед сборкой их скачивает npm run media:pull
+src/assets/works/
+
+.DS_Store
+Thumbs.db
+.env
+
+# Папки для выкладки в Selectel (tools/prepare_media.py), в git не идут
+media/

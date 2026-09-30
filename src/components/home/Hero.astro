@@ -1,0 +1,337 @@
+---
+// Первый экран на всю высоту: внизу лента маленьких миниатюр.
+// С мышью выбранная картина опускается сверху на всю ширину экрана (scripts/art.ts), наведение на
+// миниатюру меняет её. На тач-экранах выбранная картина стоит по центру и меняется тапом.
+import { getImage, Image } from "astro:assets";
+import { galleryOrder, loadImage, mediumSize, priceOrState, ratioOf, workHref } from "../../lib/works";
+
+const works = galleryOrder().slice(0, 20);
+const items = await Promise.all(
+  works.map(async (work) => {
+    const image = await loadImage(work.images[0].src);
+    // большая версия — для выезда сверху и просмотра на весь экран
+    const full = await getImage({ src: image, width: Math.min(image.width, 1600), format: "webp", quality: 84 });
+    return { work, image, full: full.src, r: ratioOf(work) };
+  }),
+);
+const count = galleryOrder().length;
+---
+
+<section class="hero" id="top" aria-labelledby="hero-title" data-hero>
+  <div class="hero__intro" data-hero-intro>
+    <p class="hero__eyebrow label muted" data-reveal="text">Viktor Grachev · Plein-air painter · Budva, Montenegro</p>
+    <h1 id="hero-title" class="hero__title display" data-reveal="text">
+      <span class="sr-only">Vityungr. </span>Painted outdoors, in the places I live.
+    </h1>
+    <div class="hero__side" data-reveal="text">
+      <p class="muted">
+        Oil sketches from Montenegro, Serbia, Bosnia and Türkiye, and slow tempera pieces from the studio. Originals,
+        signed prints and a monthly print club.
+      </p>
+      <p class="hero__links">
+        <a class="tlink" href="/works">Available works · <span class="num">{count}</span></a>
+        <a class="tlink" href="#print-club">Print Club</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Сцена: выбранная картина по центру -->
+  <div class="hero__stage">
+    {
+      items.map((p, i) => (
+        <a
+          class:list={["hero__big", { "is-active": i === 0 }]}
+          href={workHref(p.work)}
+          data-hero-big={i}
+          aria-hidden={i === 0 ? undefined : "true"}
+          tabindex={i === 0 ? undefined : -1}
+          style={`--r:${p.r.toFixed(4)}`}
+        >
+          <Image
+            src={p.image}
+            alt={`${p.work.title}, ${p.work.medium.toLowerCase()}`}
+            widths={[640, 960, 1280].filter((w) => w <= p.image.width)}
+            sizes="(max-width: 759px) 90vw, 50vw"
+            format="webp"
+            quality={82}
+            loading={i < 3 ? "eager" : "lazy"}
+            fetchpriority={i === 0 ? "high" : undefined}
+            draggable="false"
+            data-art={p.full}
+            data-art-ratio={p.r.toFixed(4)}
+            data-art-title={p.work.title}
+            data-art-meta={[mediumSize(p.work), priceOrState(p.work)].filter(Boolean).join(" · ")}
+            data-art-href={workHref(p.work)}
+            data-art-href-label="View and request"
+          />
+          <span class="hero__cap">
+            <span class="serif hero__cap-title">{p.work.title}</span>
+            <span class="muted">{[mediumSize(p.work), priceOrState(p.work)].filter(Boolean).join(" · ")}</span>
+          </span>
+        </a>
+      ))
+    }
+  </div>
+
+  <!-- Лента миниатюр -->
+  <ul class="hero__strip" aria-label="Choose a painting">
+    {
+      items.map((p, i) => (
+        <li class="hero__thumb" style={`--r:${p.r.toFixed(4)}`} data-reveal="rise">
+          <button
+            type="button"
+            class:list={["hero__pick", { "is-active": i === 0 }]}
+            data-hero-pick={i}
+            aria-label={p.work.title}
+            aria-pressed={i === 0 ? "true" : "false"}
+          >
+            <Image
+              src={p.image}
+              alt=""
+              widths={[120, 200]}
+              sizes="120px"
+              format="webp"
+              quality={70}
+              loading="eager"
+              draggable="false"
+            />
+          </button>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  /* Сверху — выбранная картина, под ней крупный заголовок и текст, внизу — лента */
+  .hero {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    gap: clamp(20px, 3.2vh, 40px);
+    height: 100svh;
+    min-height: 700px;
+    padding: clamp(76px, 10vh, 100px) 0 clamp(20px, 3.5vh, 36px);
+  }
+
+  .hero__stage {
+    grid-row: 1;
+  }
+
+  /* С мышью картина опускается сверху (scripts/art.ts) — сцена остаётся пустым местом под неё */
+  @media (hover: hover) and (pointer: fine) {
+    .hero__stage {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .hero__stage :global(*) {
+      pointer-events: none !important;
+    }
+  }
+
+  .hero__intro {
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(16px, 1.8vw, 28px);
+    row-gap: 14px;
+    padding-inline: var(--gutter);
+  }
+
+  .hero__eyebrow {
+    grid-column: 1 / -1;
+  }
+
+  .hero__title {
+    grid-column: 1 / span 8;
+    font-size: clamp(2.75rem, 0.9rem + 5.4vw, 7.25rem);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    max-width: 13ch;
+  }
+
+  .hero__side {
+    grid-column: 9 / span 4;
+    align-self: end;
+    max-width: 40ch;
+  }
+
+  .hero__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 24px;
+    margin-top: 10px;
+    font-size: var(--t-small);
+  }
+
+  /* ---------- Сцена ---------- */
+  .hero__stage {
+    position: relative;
+    min-height: 0;
+  }
+
+  .hero__big {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    justify-items: center;
+    align-items: end;
+    gap: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translate3d(0, 24px, 0) scale(0.97);
+    transition:
+      opacity 0.35s var(--ease-soft),
+      transform 0.5s var(--ease-out),
+      visibility 0s linear 0.5s;
+    pointer-events: none;
+  }
+
+  .hero__big.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+      opacity 0.6s var(--ease-soft),
+      transform 0.9s var(--ease-out),
+      visibility 0s;
+    pointer-events: auto;
+  }
+
+  /* картина вписывается в сцену целиком */
+  .hero__big :global(img) {
+    max-width: min(70vw, 100%);
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    object-fit: contain;
+    box-shadow: var(--shadow-lift);
+  }
+
+  .hero__cap {
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+    font-size: var(--t-small);
+  }
+
+  .hero__cap-title {
+    font-size: var(--t-title);
+  }
+
+  /* ---------- Лента ---------- */
+  .hero__strip {
+    grid-row: 3;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding-inline: var(--gutter);
+  }
+
+  .hero__thumb {
+    flex: var(--r) 1 0;
+    min-width: 0;
+  }
+
+  .hero__pick {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    opacity: 0.55;
+    transform-origin: 50% 100%;
+    transition:
+      opacity 0.35s var(--ease-soft),
+      transform 0.45s var(--ease-out);
+  }
+
+  .hero__pick :global(img) {
+    width: 100%;
+    aspect-ratio: var(--r);
+    object-fit: cover;
+  }
+
+  .hero__pick:hover,
+  .hero__pick:focus-visible,
+  .hero__pick.is-active {
+    opacity: 1;
+  }
+
+  .hero__pick.is-active {
+    transform: translateY(-8px) scale(1.12);
+  }
+
+  @media (max-width: 859px) {
+    .hero__title,
+    .hero__side {
+      grid-column: 1 / -1;
+    }
+
+    .hero__side p.muted {
+      display: none;
+    }
+  }
+
+  /* На телефоне лента листается пальцем */
+  @media (max-width: 759px) {
+    .hero__strip {
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-top: 12px;
+    }
+
+    .hero__strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hero__thumb {
+      flex: none;
+      width: calc(var(--r) * 56px);
+    }
+
+    .hero__big :global(img) {
+      max-width: 100%;
+    }
+
+    .hero__cap {
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+  }
+</style>
+
+<script>
+  const hero = document.querySelector<HTMLElement>("[data-hero]");
+  if (hero) {
+    const bigs = Array.from(hero.querySelectorAll<HTMLElement>("[data-hero-big]"));
+    const picks = Array.from(hero.querySelectorAll<HTMLButtonElement>("[data-hero-pick]"));
+    let current = 0;
+
+    const show = (i: number) => {
+      if (i === current || !bigs[i]) return;
+      bigs[current]?.classList.remove("is-active");
+      bigs[current]?.setAttribute("aria-hidden", "true");
+      bigs[current]?.setAttribute("tabindex", "-1");
+      picks[current]?.classList.remove("is-active");
+      picks[current]?.setAttribute("aria-pressed", "false");
+      current = i;
+      bigs[i].classList.add("is-active");
+      bigs[i].removeAttribute("aria-hidden");
+      bigs[i].removeAttribute("tabindex");
+      picks[i].classList.add("is-active");
+      picks[i].setAttribute("aria-pressed", "true");
+    };
+
+    // мышью картину выбирает scripts/art.ts (по координатам курсора), здесь — клавиатура и тап
+    window.addEventListener("hero:select", (e) => show(Number((e as CustomEvent<string>).detail)));
+    picks.forEach((btn, i) => {
+      btn.addEventListener("focus", () => show(i));
+      btn.addEventListener("click", () => show(i));
+    });
+  }
+</script>
