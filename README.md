@@ -66,9 +66,9 @@ npm run build    # статика в dist/
 
 | Что | Тип | Пример |
 |---|---|---|
-| `HOSTING_HOST` | variable | адрес SFTP из панели Timeweb |
+| `HOSTING_HOST` | variable | сервер Timeweb, `vh460.timeweb.ru` (тот же, что у nicktmsh) |
 | `HOSTING_USER` | variable | логин хостинга |
-| `HOSTING_DIR` | variable | `www/vityungr.nicktmsh.ru` (по умолчанию) |
+| `HOSTING_DIR` | variable | `vityungr/public_html` (по умолчанию): папка сайта в Timeweb + `/public_html` |
 | `HOSTING_PROTOCOL` | variable | `sftp` (по умолчанию) или `ftp` |
 | `HOSTING_PASSWORD` | secret | пароль хостинга |
 
