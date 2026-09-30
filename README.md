@@ -54,15 +54,9 @@ npm run build    # статика в dist/
 1. `npm run scrape` — забирает работы, цены и фото со старого сайта на Тильде в `works/` (в git не идёт).
 2. `npm run images` — обрезает белую подложку, уменьшает фото до 1600 px, пишет `src/assets/works` и `src/data/catalog.json`.
 
-3. `npm run media:prepare` — собирает `media/` с папками для выкладки в Selectel (одна папка = один бакет):
-   - `vityungr-media` (публичный) — `works/…`, веб-версии фото, те же пути, что в `src/assets/works`;
-   - `vityungr-sources` (приватный) — `tilda/…` (фото со старого сайта и каталог) и `hires/` для исходников от Вити.
+3. `npm run media:prepare` — собирает `media/vityungr/` для архива исходников в Selectel (приватный бакет, папка `vityungr/`): `tilda/` — фото со старого сайта и каталог, `hires/` — исходники от Вити в полном размере. В git и на хостинг они не идут.
 
-## Медиа в Selectel
-
-Фото работ в git не хранятся (`src/assets/works` в `.gitignore`). Перед `npm run build` сам запускается `npm run media:pull`: он берёт список фото из `src/data/catalog.json` и скачивает недостающие из публичного бакета по адресу из переменной `MEDIA_URL`. На хостинге нужно задать `MEDIA_URL` (адрес бакета `vityungr-media` без `/` в конце). Локально, если фото уже лежат на месте, ничего не скачивается.
-
-Фото Вити (`src/assets/vitya`) лежат в git, их мало.
+Веб-версии фото (`src/assets/works`) лежат в git, сайт собирается без внешних сервисов.
 
 ## Проверка
 

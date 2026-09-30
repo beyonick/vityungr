@@ -12,8 +12,6 @@
     "scrape": "python tools/scrape_tilda.py",
     "shots": "node tools/shots.mjs",
     "hover-test": "node tools/hover-test.mjs",
-    "prebuild": "node tools/pull_media.mjs",
-    "media:pull": "node tools/pull_media.mjs",
     "media:prepare": "python tools/prepare_media.py"
   },
   "dependencies": {
