@@ -1,4 +1,5 @@
-"""Собирает исходники для архива в Selectel: media/vityungr/ заливается папкой vityungr/ в приватный бакет.
+"""Собирает исходники для архива в Selectel: media/vityungr/ заливается папкой vityungr/ в бакет websites-media,
+как у nicktmsh (папка на сайт, отдельный бакет не нужен).
 
   media/vityungr/
     tilda/originals/...      фото как есть со старого сайта (works/ после npm run scrape)

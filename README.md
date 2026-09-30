@@ -54,9 +54,25 @@ npm run build    # статика в dist/
 1. `npm run scrape` — забирает работы, цены и фото со старого сайта на Тильде в `works/` (в git не идёт).
 2. `npm run images` — обрезает белую подложку, уменьшает фото до 1600 px, пишет `src/assets/works` и `src/data/catalog.json`.
 
-3. `npm run media:prepare` — собирает `media/vityungr/` для архива исходников в Selectel (приватный бакет, папка `vityungr/`): `tilda/` — фото со старого сайта и каталог, `hires/` — исходники от Вити в полном размере. В git и на хостинг они не идут.
+3. `npm run media:prepare` — собирает `media/vityungr/` для архива исходников в Selectel (бакет `websites-media`, папка `vityungr/`): `tilda/` — фото со старого сайта и каталог, `hires/` — исходники от Вити в полном размере. В git и на хостинг они не идут.
 
 Веб-версии фото (`src/assets/works`) лежат в git, сайт собирается без внешних сервисов.
+
+## Выкладка
+
+Как у nicktmsh: пуш в `main` → GitHub Actions (`.github/workflows/deploy-hosting.yml`) собирает сайт и заливает `dist/` на Timeweb по SFTP (`.github/deploy-hosting.sh`, lftp mirror). `.htaccess` лежит в `public/` и попадает в `dist` при сборке.
+
+В настройках репозитория (Settings → Secrets and variables → Actions):
+
+| Что | Тип | Пример |
+|---|---|---|
+| `HOSTING_HOST` | variable | адрес SFTP из панели Timeweb |
+| `HOSTING_USER` | variable | логин хостинга |
+| `HOSTING_DIR` | variable | `www/vityungr.nicktmsh.ru` (по умолчанию) |
+| `HOSTING_PROTOCOL` | variable | `sftp` (по умолчанию) или `ftp` |
+| `HOSTING_PASSWORD` | secret | пароль хостинга |
+
+Пока `HOSTING_HOST` не задан, workflow только собирает сайт. Перезапустить вручную: Actions → Deploy to hosting → Run workflow.
 
 ## Проверка
 

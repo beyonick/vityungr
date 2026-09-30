@@ -1,0 +1,22 @@
+Options -Indexes -MultiViews
+DirectoryIndex index.html
+AddType font/woff2 .woff2
+
+RewriteEngine On
+
+# Проверка Let's Encrypt должна дойти до хостинга, иначе сертификат не выпустится.
+RewriteRule ^\.well-known/acme-challenge/ - [L]
+
+# Главный адрес — без www.
+RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+# Страницы браузер всегда сверяет с сервером; в _astro имена с хэшем, их можно держать долго.
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.(woff2|png|jpe?g|webp|avif|svg|ico|css|js)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+</IfModule>

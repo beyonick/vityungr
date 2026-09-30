@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Собирает сайт в dist/ и заливает на хостинг. Без --upload только собирает.
+# Переменные для заливки: HOSTING_PROTOCOL (sftp|ftp), HOSTING_HOST, HOSTING_USER, HOSTING_PASSWORD, HOSTING_DIR.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+npm run build
+OUT=dist
+[[ -f "$OUT/.htaccess" ]] || { echo "::error::нет $OUT/.htaccess (должен прийти из public/)"; exit 1; }
+[[ "${1:-}" == "--upload" ]] || exit 0
+
+if [[ -z "${HOSTING_HOST:-}" ]]; then
+  echo "::warning::HOSTING_HOST не задан — выкладка на хостинг пропущена"
+  exit 0
+fi
+fail() { echo "::error::$*"; exit 1; }
+[[ -n "${HOSTING_USER:-}" ]] || fail "переменная HOSTING_USER пуста"
+[[ -n "${HOSTING_PASSWORD:-}" ]] || fail "секрет HOSTING_PASSWORD пуст или не виден"
+[[ -n "${HOSTING_DIR:-}" ]] || fail "переменная HOSTING_DIR пуста"
+echo "target=${HOSTING_PROTOCOL}://${HOSTING_HOST}/${HOSTING_DIR}"
+
+# .well-known и cgi-bin создаёт сам хостинг: --delete не должен их трогать.
+# Фото не меняются между сборками (имена с хэшем), поэтому mirror перезаливает только новое.
+LFTP_PASSWORD="$HOSTING_PASSWORD" lftp --env-password -u "$HOSTING_USER" "${HOSTING_PROTOCOL}://${HOSTING_HOST}" -e "
+  set cmd:fail-exit yes
+  set net:max-retries 3
+  set net:timeout 20
+  set sftp:auto-confirm yes
+  set ftp:ssl-allow yes
+  mirror --reverse --delete --only-newer --parallel=4 \
+    --exclude-glob .well-known/ --exclude-glob cgi-bin/ \
+    $OUT/ $HOSTING_DIR/
+  quit
+" || fail "заливка на ${HOSTING_HOST} не удалась, подробности в логе шага"
