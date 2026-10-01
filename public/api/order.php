@@ -165,6 +165,7 @@ $in = [
     'country' => field('country', 100),
     'contact' => field('contact', 200),
     'message' => field('message', 3000),
+    'option' => field('option', 120), // размер или набор кадров у принта
 ];
 
 $bad = [];
@@ -183,6 +184,16 @@ if ($in['country'] === '') {
 if ($in['work'] === 'other' && $in['message'] === '') {
     $bad[] = 'message';
 }
+// вариант должен быть из списка этого принта; у остальных вариантов нет
+$option = null;
+foreach ($works[$in['work']]['options'] ?? [] as $o) {
+    if (($o['label'] ?? null) === $in['option']) {
+        $option = $o;
+    }
+}
+if ($in['option'] !== '' && !$option) {
+    $bad[] = 'option';
+}
 if (($_POST['consent'] ?? '') !== 'yes') {
     $bad[] = 'consent';
 }
@@ -192,13 +203,18 @@ if ($bad) {
 
 $work = $works[$in['work']] ?? null;
 $workLine = $work
-    ? trim($work['title'] . ' — ' . implode(', ', array_filter([$work['meta'] ?? '', $work['price'] ?? ''])))
+    ? trim($work['title'] . ' — ' . implode(', ', array_filter([
+        $work['meta'] ?? '',
+        $option ? ($work['optionName'] ?? 'Option') . ': ' . $option['label'] : '',
+        $option['price'] ?? $work['price'] ?? '',
+    ])))
     : 'Something else (see the message)';
 
 $record = [
     'received' => date('c'),
     'work' => $in['work'],
     'work_title' => $workLine,
+    'option' => $option['label'] ?? '',
     'name' => $in['name'],
     'email' => $in['email'],
     'country' => $in['country'],

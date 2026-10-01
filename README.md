@@ -38,6 +38,9 @@ npm run build    # статика в dist/
 | Страница работы `/works/<серия>/<папка>` — у всех 181 работы каталога | `src/pages/works/[series]/[slug].astro` |
 | Страница серии `/works/<серия>`, в том числе «New works» (`/works/new`) | `src/pages/works/[series]/index.astro`; ссылки на все серии — `src/components/SeriesNav.astro` |
 | Доставка и вопросы `/shipping` | `src/pages/shipping.astro` |
+| Меню (Works · Prints · Contact) | `nav` в `src/data/site.ts`, шапка — `src/components/Header.astro` |
+| Принты и Print Club `/prints` | `src/pages/prints.astro`; варианты (размеры, кадры) — `src/data/prints.ts`; ряд ссылок-«таблеток» — `src/components/ChipNav.astro` |
+| Контакты и «обо мне» `/contact` | `src/pages/contact.astro`; блок «Write to me» — `src/components/ContactBlock.astro` (он же в подвале, на `/contact` подвал короткий) |
 | Форма заявки на картину | страница `src/pages/order/`, форма `src/components/OrderForm.astro`, приём `public/api/order.php` |
 | Политика и согласие на обработку данных | `src/pages/privacy.astro`, `src/pages/consent.astro`, раскладка `src/components/LegalDoc.astro`; оператор и дата редакции — `operator` в `src/data/site.ts` |
 | Каталог работ (цены, статусы, размеры) | `src/data/catalog.json` — генерируется, руками не править |
@@ -62,6 +65,10 @@ npm run build    # статика в dist/
   - Внизу другие работы серии, сверху «Prev / Next» по серии. Для поисковиков — разметка `VisualArtwork`, для превью ссылки в мессенджерах — `og:image`.
 - **Серия.** Вступление из `series.ts`, блоки «Available now» и «Archive» (проданные и остальные), другие серии обложками. Порядок работ один и тот же здесь и в «Prev / Next» — `seriesOrder` в `src/lib/works.ts`.
 - **New works** — работы, которые на старом сайте были только в «Available works» (серия `new` в каталоге). На главную эта «серия» не идёт.
+
+## Принты
+
+`/prints`: лимитированные партии (по 5 штук, остаток из каталога), открытый тираж, анимационные принты, внизу Print Club. «Request» под принтом открывает `/order?work=prints/<вид>/<папка>`. В форме принты идут отдельной группой. У открытого тиража выбирается размер (9 × 12 in — €30, A3 — €40), у «Swallow Island» — набор кадров. Варианты и цены — `src/data/prints.ts`, со старого сайта. Обработчик проверяет, что вариант из списка этого принта.
 
 ## Доставка и вопросы
 

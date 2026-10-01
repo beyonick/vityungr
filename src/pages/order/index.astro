@@ -1,18 +1,21 @@
 ---
-// Заявка на картину. /order?work=<серия>/<папка> открывает форму с выбранной работой.
+// Заявка на картину или принт. /order?work=<серия>/<папка> или ?work=prints/<вид>/<папка> — с уже выбранным.
 import OrderForm from "../../components/OrderForm.astro";
 import SectionHead from "../../components/SectionHead.astro";
 import Base from "../../layouts/Base.astro";
 ---
 
-<Base title="Request a painting" description="Request an original painting by Vityungr. No payment on the site: I’ll email you to agree on shipping and payment.">
+<Base
+  title="Request a purchase"
+  description="Request an original painting or a print by Vityungr. No payment on the site: I’ll email you to agree on shipping and payment."
+>
   <section class="order" aria-labelledby="order-title">
-    <SectionHead n="—" label="Order" aside="No payment on the site" title="Request a painting" titleId="order-title" level={1}>
+    <SectionHead n="—" label="Order" aside="No payment on the site" title="Request a purchase" titleId="order-title" level={1}>
       <p>
-        Choose a painting and leave your contacts. I’ll write back by email within a couple of days to agree on
-        currency, payment and delivery.
+        Choose a painting or a print and leave your contacts. I’ll write back by email within a couple of days to agree
+        on currency, payment and delivery.
       </p>
-      <p>Every original is wrapped by hand, packed within 1–3 working days and shipped worldwide.</p>
+      <p>Everything is wrapped by hand and packed within 1–3 working days. Prints ship free worldwide.</p>
     </SectionHead>
     <OrderForm />
   </section>

@@ -1,20 +1,14 @@
 ---
-import { social } from "../data/site";
+import { nav, social } from "../data/site";
 
 interface Props {
   home?: boolean;
 }
 
-// Меню ведёт к разделам главной; на других страницах — на главную к нужному разделу
+// Открытый раздел подсвечен: /works/… — Works, /prints — Prints, /contact — Contact
 const { home = false } = Astro.props;
-const base = home ? "" : "/";
-const links = [
-  { label: "Works", href: "/works" },
-  { label: "Prints", href: `${base}#prints` },
-  { label: "Print Club", href: `${base}#print-club` },
-  { label: "About", href: `${base}#about` },
-  { label: "Contact", href: `${base}#contact` },
-];
+const path = Astro.url.pathname;
+const links = nav.map((l) => ({ ...l, current: path === l.href || path.startsWith(`${l.href}/`) }));
 const instagram = social.find((s) => s.label === "Instagram")!;
 ---
 
@@ -26,7 +20,7 @@ const instagram = social.find((s) => s.label === "Instagram")!;
       {
         links.map((l) => (
           <li>
-            <a class="label" href={l.href}>
+            <a class="label" href={l.href} aria-current={l.current ? "page" : undefined}>
               {l.label}
             </a>
           </li>
@@ -49,7 +43,7 @@ const instagram = social.find((s) => s.label === "Instagram")!;
       {
         links.map((l) => (
           <li>
-            <a class="serif" href={l.href}>
+            <a class="serif" href={l.href} aria-current={l.current ? "page" : undefined}>
               {l.label}
             </a>
           </li>
@@ -121,7 +115,8 @@ const instagram = social.find((s) => s.label === "Instagram")!;
     transition: color 0.3s var(--ease-soft);
   }
 
-  .hdr__nav a:hover {
+  .hdr__nav a:hover,
+  .hdr__nav a[aria-current="page"] {
     color: var(--ink);
   }
 

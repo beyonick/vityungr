@@ -1,31 +1,75 @@
 ---
-// Форма заявки на картину. Оплаты на сайте нет: заявка уходит Вите в Telegram и на почту
+// Форма заявки на картину или принт. Оплаты на сайте нет: заявка уходит Вите в Telegram и на почту
 // (public/api/order.php), дальше он пишет покупателю сам.
 //
-// 01 — какая картина: миниатюры всех работ в продаже, это радиокнопки — выбор работает и без JS.
+// 01 — что заказать: миниатюры работ в продаже и принтов, это радиокнопки — выбор работает и без JS.
+//      У части принтов есть варианты (размер, кадры) — их выбирают под крупной картинкой.
 //      С JS выбранная картина показывается крупно, остальные прячутся до «Change».
-//      /order?work=<серия>/<папка> открывает форму с уже выбранной картиной.
+//      /order?work=<серия>/<папка> (или prints/<вид>/<папка>) открывает форму с уже выбранным.
 // 02 — контакты. 03 — согласие на обработку данных и отправка.
 //
 // На странице работы (work={…}) картина уже выбрана: вместо миниатюр — она сама и ссылка на /order.
 import { getImage } from "astro:assets";
 import { operator, site } from "../data/site";
-import { galleryOrder, loadImage, mediumSize, orderId, priceOrState, ratioOf, type Work } from "../lib/works";
+import {
+  availablePrints,
+  galleryOrder,
+  loadImage,
+  mediumSize,
+  orderId,
+  paperOf,
+  priceOrState,
+  printId,
+  printOptions,
+  printPrice,
+  printStock,
+  printTitle,
+  ratioOf,
+  type Print,
+  type Work,
+  type WorkImage,
+} from "../lib/works";
 
 interface Props {
   work?: Work;
 }
 
-const { work } = Astro.props;
-const toItem = async (w: Work) => {
-  const image = await loadImage(w.images[0].src);
-  const [thumb, large] = await Promise.all(
-    [360, 800].map((width) => getImage({ src: image, width: Math.min(width, image.width), format: "webp", quality: 80 })),
-  );
-  return { w, id: orderId(w), r: ratioOf(w), thumb: thumb.src, large: large.src };
+type Item = {
+  id: string;
+  title: string;
+  meta: string;
+  price: string;
+  options: ReturnType<typeof printOptions>;
 };
-const fixed = work ? await toItem(work) : null;
-const works = work ? [] : await Promise.all(galleryOrder().map(toItem));
+
+const { work } = Astro.props;
+// пропорции берём из каталога, картинку — для миниатюры (360) и крупного вида (800)
+const withImages = async (entry: { images: WorkImage[] }, item: Item) => {
+  const [first] = entry.images;
+  const image = await loadImage(first.src);
+  const [thumb, large] = await Promise.all(
+    [360, 800].map((width) => getImage({ src: image, width: Math.min(width, first.w), format: "webp", quality: 80 })),
+  );
+  return { ...item, r: ratioOf(entry), thumb: thumb.src, large: large.src };
+};
+const fromWork = (w: Work) =>
+  withImages(w, { id: orderId(w), title: w.title, meta: mediumSize(w), price: priceOrState(w), options: null });
+const fromPrint = (p: Print) =>
+  withImages(p, {
+    id: printId(p),
+    title: printTitle(p),
+    meta: [paperOf(p), printStock(p)].join(" · "),
+    price: printPrice(p),
+    options: printOptions(p),
+  });
+
+const fixed = work ? await fromWork(work) : null;
+const groups = work
+  ? []
+  : [
+      { label: "Original paintings", items: await Promise.all(galleryOrder().map(fromWork)) },
+      { label: "Prints", items: await Promise.all(availablePrints().map(fromPrint)) },
+    ];
 
 // Страны — по-английски, как их называет браузер; код нужен для подсказки про США и Канаду
 const codes =
@@ -40,19 +84,19 @@ const countries = codes
 <form class="of" action="/api/order.php" method="post" novalidate data-order>
   <!-- 01 Картина -->
   <fieldset class="of__row" aria-describedby={fixed ? undefined : "work-hint"} data-reveal="text">
-    <legend class="of__legend label"><span class="of__n num">01</span>Painting</legend>
+    <legend class="of__legend label"><span class="of__n num">01</span>{fixed ? "Painting" : "Artwork"}</legend>
     {
       fixed ? (
         <div class="of__body">
-          <input type="hidden" name="work" value={fixed.id} data-title={fixed.w.title} data-fixed />
+          <input type="hidden" name="work" value={fixed.id} data-title={fixed.title} data-fixed />
           <figure class="of__art of__art--fixed">
             <span class="of__frame">
               <img src={fixed.thumb} alt="" width="360" height={Math.round(360 / fixed.r)} loading="lazy" decoding="async" />
             </span>
             <figcaption class="of__cap">
-              <p class="of__title serif">{fixed.w.title}</p>
-              <p class="muted">{mediumSize(fixed.w)}</p>
-              <p class="of__price num">{priceOrState(fixed.w)}</p>
+              <p class="of__title serif">{fixed.title}</p>
+              <p class="muted">{fixed.meta}</p>
+              <p class="of__price num">{fixed.price}</p>
               <a class="of__change tlink" href="/order">Choose another painting</a>
             </figcaption>
           </figure>
@@ -66,6 +110,11 @@ const countries = codes
                 <p class="of__title serif" data-chosen-title></p>
                 <p class="muted" data-chosen-meta></p>
                 <p class="of__price num" data-chosen-price></p>
+                <div class="of__option" hidden data-option-wrap>
+                  <label class="of__label label" for="of-option" data-option-name>Size</label>
+                  <select class="of__input of__select" id="of-option" name="option" disabled data-option></select>
+                  <p class="of__error" hidden data-error="option">Choose one of the options.</p>
+                </div>
                 <button class="of__change tlink" type="button" data-change>Choose another painting</button>
               </figcaption>
             </figure>
@@ -73,42 +122,50 @@ const countries = codes
 
           <div class="of__pick" data-pick>
             <p class="of__hint muted" id="work-hint" data-pick-hint>
-              Choose one of the paintings available now. Want several? Pick one and list the others in the message.
+              Choose a painting or a print. Want several? Pick one and list the others in the message.
             </p>
             <p class="of__warn" hidden data-gone>
-              That painting has just been sold or reserved. Choose another one, or write to me about something similar.
+              That one has just sold out or been reserved. Choose another one, or write to me about something similar.
             </p>
-            <div class="of__grid">
-              {
-                works.map(({ w, id, r, thumb, large }) => (
-                  <label class="of__thumb" style={`--r:${r.toFixed(4)}`} title={w.title}>
-                    <input
-                      class="sr-only"
-                      type="radio"
-                      name="work"
-                      value={id}
-                      required
-                      data-title={w.title}
-                      data-meta={mediumSize(w)}
-                      data-price={priceOrState(w)}
-                      data-large={large}
-                      data-ratio={r.toFixed(4)}
-                    />
-                    <img src={thumb} alt="" width="360" height={Math.round(360 / r)} loading="lazy" decoding="async" />
-                    <span class="sr-only">
-                      {w.title}, {mediumSize(w)}, {priceOrState(w)}
-                    </span>
-                  </label>
-                ))
-              }
-              <label class="of__thumb of__thumb--other">
-                <input class="sr-only" type="radio" name="work" value="other" required data-title="Something else" />
-                <span class="of__other-text">Something else</span>
-              </label>
-            </div>
+            {
+              groups.map((g, gi) => (
+                <div class="of__group">
+                  <p class="of__group-label label muted">{g.label}</p>
+                  <div class="of__grid">
+                    {g.items.map((it) => (
+                      <label class="of__thumb" style={`--r:${it.r.toFixed(4)}`} title={it.title}>
+                        <input
+                          class="sr-only"
+                          type="radio"
+                          name="work"
+                          value={it.id}
+                          required
+                          data-title={it.title}
+                          data-meta={it.meta}
+                          data-price={it.price}
+                          data-large={it.large}
+                          data-ratio={it.r.toFixed(4)}
+                          data-options={it.options ? JSON.stringify(it.options) : undefined}
+                        />
+                        <img src={it.thumb} alt="" width="360" height={Math.round(360 / it.r)} loading="lazy" decoding="async" />
+                        <span class="sr-only">
+                          {it.title}, {it.meta}, {it.price}
+                        </span>
+                      </label>
+                    ))}
+                    {gi === groups.length - 1 && (
+                      <label class="of__thumb of__thumb--other">
+                        <input class="sr-only" type="radio" name="work" value="other" required data-title="Something else" />
+                        <span class="of__other-text">Something else</span>
+                      </label>
+                    )}
+                  </div>
+                </div>
+              ))
+            }
             <p class="of__peek" aria-hidden="true" data-peek-line>&nbsp;</p>
           </div>
-          <p class="of__error" id="err-work" hidden data-error="work">Choose a painting, or “Something else”.</p>
+          <p class="of__error" id="err-work" hidden data-error="work">Choose a painting or a print, or “Something else”.</p>
         </div>
       )
     }
@@ -142,7 +199,7 @@ const countries = codes
           <a class="ulink" href="/shipping" target="_blank">Shipping and FAQ</a>
         </p>
         <p class="of__warn" hidden aria-live="polite" data-country-warn>
-          I can’t ship originals to the US and Canada yet. If you have an address in another country, send the request anyway.
+          I can’t ship originals and large prints to the US and Canada yet; 9 × 12 in and A4 prints are fine. If you have an address in another country, send the request anyway.
         </p>
         <p class="of__error" id="err-country" hidden data-error="country">Where should the painting go?</p>
       </div>
@@ -250,6 +307,19 @@ const countries = codes
   .of__hint {
     max-width: 52ch;
     margin-bottom: 20px;
+  }
+
+  .of__group + .of__group {
+    margin-top: 32px;
+  }
+
+  .of__group-label {
+    margin-bottom: 12px;
+  }
+
+  .of__option {
+    margin-top: 14px;
+    max-width: 340px;
   }
 
   .of__grid {
@@ -666,6 +736,10 @@ const countries = codes
     const pick = form.querySelector<HTMLElement>("[data-pick]");
     const chosenImg = form.querySelector<HTMLImageElement>("[data-chosen-img]");
     const peekLine = form.querySelector<HTMLElement>("[data-peek-line]");
+    const optionWrap = form.querySelector<HTMLElement>("[data-option-wrap]");
+    const optionSelect = form.querySelector<HTMLSelectElement>("[data-option]");
+    const optionName = form.querySelector<HTMLElement>("[data-option-name]");
+    type Options = { name: string; list: { label: string; price: string }[] };
     const country = $<HTMLSelectElement>("[data-country]");
     const countryWarn = $<HTMLElement>("[data-country-warn]");
     const message = $<HTMLTextAreaElement>("#of-message");
@@ -684,6 +758,14 @@ const countries = codes
       const showChosen = (r: HTMLInputElement | null) => {
         const isWork = !!r && r.value !== "other";
         chosen.hidden = !isWork;
+        // варианты принта (размер, кадры): без них поле выключено и не отправляется
+        const opts: Options | null = isWork && r?.dataset.options ? JSON.parse(r.dataset.options) : null;
+        if (optionWrap && optionSelect && optionName) {
+          optionWrap.hidden = !opts;
+          optionSelect.disabled = !opts;
+          optionSelect.replaceChildren(...(opts?.list ?? []).map((o) => new Option(`${o.label} — ${o.price}`, o.label)));
+          if (opts) optionName.textContent = opts.name;
+        }
         pick.hidden = isWork;
         messageOpt.hidden = r?.value === "other";
         message.required = r?.value === "other";
@@ -693,7 +775,11 @@ const countries = codes
         chosenImg.style.aspectRatio = r.dataset.ratio ?? "";
         $("[data-chosen-title]").textContent = r.dataset.title ?? "";
         $("[data-chosen-meta]").textContent = r.dataset.meta ?? "";
-        $("[data-chosen-price]").textContent = r.dataset.price ?? "";
+        const price = $("[data-chosen-price]");
+        const syncPrice = () =>
+          (price.textContent = (opts && optionSelect ? opts.list[optionSelect.selectedIndex]?.price : null) ?? r.dataset.price ?? "");
+        if (optionSelect) optionSelect.onchange = syncPrice;
+        syncPrice();
       };
 
       radios.forEach((r) => {
@@ -840,8 +926,9 @@ const countries = codes
           const r = current();
           const name = (form.elements.namedItem("name") as HTMLInputElement).value.trim();
           done.querySelector("[data-done-name]")!.textContent = name ? `, ${name.split(" ")[0]}` : "";
+          const option = optionSelect && !optionSelect.disabled ? `, ${optionSelect.value}` : "";
           done.querySelector("[data-done-work]")!.textContent =
-            r && r.value !== "other" ? ` for “${r.dataset.title}”` : "";
+            r && r.value !== "other" ? ` for “${r.dataset.title}”${option}` : "";
           done.querySelector("[data-done-email]")!.textContent = (
             form.elements.namedItem("email") as HTMLInputElement
           ).value.trim();

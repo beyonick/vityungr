@@ -18,11 +18,11 @@ export const operator = {
   effective: "2026-10-01",
 };
 
+// Меню: принты и Print Club — на /prints, «обо мне» и контакты — на /contact
 export const nav = [
   { label: "Works", href: "/works" },
   { label: "Prints", href: "/prints" },
-  { label: "Print Club", href: "/print-club" },
-  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export const social = [

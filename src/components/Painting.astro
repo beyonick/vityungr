@@ -21,6 +21,10 @@ interface Props {
   viewLinkLabel?: string;
   /** Форма заявки с этой картиной — для работ в продаже */
   order?: string;
+  /** Ссылка в просмотре на href; у принтов страниц нет — там href ведёт на заявку или ссылки нет */
+  viewLink?: boolean;
+  /** Строка под названием, видна всегда: ссылка на заявку и приписка (у принтов — остаток) */
+  cta?: { href?: string; label?: string; aside?: string };
   class?: string;
   style?: string;
   reveal?: "rise" | "card";
@@ -41,6 +45,8 @@ const {
   viewMeta,
   viewLinkLabel = "View the work",
   order,
+  viewLink = true,
+  cta,
   class: className,
   style,
   reveal = "card",
@@ -71,7 +77,7 @@ const full = await getImage({ src: image, width: Math.min(image.width, 1600), fo
         data-art-ratio={ratio.toFixed(4)}
         data-art-title={viewTitle ?? title}
         data-art-meta={viewMeta ?? [meta, price].filter(Boolean).join(" · ")}
-        data-art-href={href}
+        data-art-href={viewLink ? href : undefined}
         data-art-href-label={viewLinkLabel}
         data-art-order={order}
       />
@@ -83,6 +89,18 @@ const full = await getImage({ src: image, width: Math.min(image.width, 1600), fo
       <span class="pt__title serif">{title}</span>
       {price && <span class="pt__price pt__more num">{price}</span>}
     </p>
+    {
+      cta && (
+        <p class="pt__cta">
+          {cta.href && (
+            <a class="tlink" href={cta.href}>
+              {cta.label ?? "Request"}
+            </a>
+          )}
+          {cta.aside && <span class="muted">{cta.aside}</span>}
+        </p>
+      )
+    }
     {meta && <p class="pt__meta pt__more muted">{meta}</p>}
   </figcaption>
 </figure>
@@ -141,6 +159,18 @@ const full = await getImage({ src: image, width: Math.min(image.width, 1600), fo
   .pt__meta {
     margin-top: 2px;
     font-size: 0.6875rem;
+  }
+
+  .pt__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 14px;
+    margin-top: 2px;
+  }
+
+  .pt__cta .tlink {
+    min-height: 28px;
   }
 
   .pt__note {

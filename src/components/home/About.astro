@@ -4,12 +4,20 @@
 import { Image } from "astro:assets";
 import windowPhoto from "../../assets/vitya/painting-by-window.jpg";
 import snow from "../../assets/vitya/plein-air-snow.jpg";
+
+interface Props {
+  n?: string;
+  /** На главной — ссылка «обо мне и контакты» на /contact; на самой /contact не нужна */
+  more?: boolean;
+}
+
+const { n = "06", more = true } = Astro.props;
 ---
 
 <section class="section about" id="about" aria-labelledby="about-title" data-about>
   <div class="sec-head about__head">
     <div class="sec-head__meta label" data-reveal="text">
-      <span><span class="sec-head__n num">06</span>About</span>
+      <span><span class="sec-head__n num">{n}</span>About</span>
       <span class="muted">Moscow Academic Art College, 2021</span>
     </div>
   </div>
@@ -58,6 +66,13 @@ import snow from "../../assets/vitya/plein-air-snow.jpg";
       <p class="muted">
         Right now I’m based in Montenegro, where I paint, ship my work around the world and collaborate with galleries.
       </p>
+      {
+        more && (
+          <p class="about__more">
+            <a class="tlink" href="/contact">How to reach me</a>
+          </p>
+        )
+      }
     </div>
   </div>
 </section>
@@ -151,6 +166,10 @@ import snow from "../../assets/vitya/plein-air-snow.jpg";
 
   .about__text p + p {
     margin-top: 0.8em;
+  }
+
+  .about__more {
+    font-size: var(--t-small);
   }
 
   @media (max-width: 859px) {

@@ -1,5 +1,6 @@
 import type { ImageMetadata } from "astro";
 import catalog from "../data/catalog.json";
+import { animationFrames, openSizes } from "../data/prints";
 
 export type WorkImage = { src: string; w: number; h: number; cutout: boolean };
 
@@ -159,3 +160,52 @@ export function galleryOrder(): Work[] {
   while (queues.some((q) => q.length)) queues.forEach((q) => q.length && mixed.push(q.shift()!));
   return [...fresh, ...mixed];
 }
+
+// ---------- Принты (страница /prints и форма заявки) ----------
+
+/** «prints/limited/olive-grove» — id принта в форме заказа */
+export const printId = (p: Print) => workId(p);
+
+export const availablePrints = () => prints.filter((p) => p.status === "available");
+
+/** Анимационные принты называются так же, как обычные, — отличаем припиской */
+export const printTitle = (p: Print) => (p.kind === "animation" ? `${p.title}, animation print` : p.title);
+
+/** «A3, 200 gsm matte paper» из «Printed on 200 gsm matte A3 paper» */
+export function paperOf(p: Print): string {
+  const m = p.paper.match(/Printed on (.+?) paper/i);
+  if (!m) return p.paper;
+  const size = m[1].match(/\b(A\d)\b/)?.[1];
+  const stock = m[1].replace(/\s*\bA\d\b/, "").trim();
+  return [size, `${stock} paper`].filter(Boolean).join(", ");
+}
+
+/** «2 of 5 left», «Back in stock, 1 of 5 left», «Sold out» */
+export function printStock(p: Print): string {
+  if (p.status === "sold out") return "Sold out";
+  if (p.kind === "animation") return "One of a kind";
+  if (p.kind === "open") return "Open edition";
+  if (p.left == null) return "Limited batch of 5";
+  return `${p.label === "RESTOCK" ? "Back in stock, " : ""}${p.left} of 5 left`;
+}
+
+export type PrintOption = { label: string; price: string };
+
+/** Что выбрать: размер у открытого тиража, набор кадров у некоторых анимационных */
+export function printOptions(p: Print): { name: string; list: PrintOption[] } | null {
+  if (p.kind === "open") {
+    return { name: "Size", list: openSizes.map((s) => ({ label: s.label, price: formatPrice(s.price) })) };
+  }
+  const frames = p.kind === "animation" ? animationFrames[p.title] : undefined;
+  if (frames) return { name: "Frames", list: frames.map((f) => ({ label: f, price: formatPrice(p.price_eur) })) };
+  return null;
+}
+
+/** Цена словами: у открытого тиража — «from €30» */
+export function printPrice(p: Print): string {
+  if (p.status === "sold out") return "Sold out";
+  if (p.kind === "open") return `from ${formatPrice(Math.min(...openSizes.map((s) => s.price)))}`;
+  return formatPrice(p.price_eur);
+}
+
+export const printOrderHref = (p: Print) => (p.status === "available" ? `/order?work=${printId(p)}` : undefined);

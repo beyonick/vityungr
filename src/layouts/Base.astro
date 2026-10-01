@@ -18,9 +18,11 @@ interface Props {
   noindex?: boolean;
   /** Картинка для превью ссылки в мессенджерах и соцсетях (путь или адрес) */
   image?: string;
+  /** Подвал без блока контактов — для /contact, где он стоит первым */
+  compactFooter?: boolean;
 }
 
-const { title, description = site.description, home = false, noindex = false, image } = Astro.props;
+const { title, description = site.description, home = false, noindex = false, image, compactFooter = false } = Astro.props;
 const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = image ? new URL(image, Astro.site) : null;
@@ -62,7 +64,7 @@ const ogImage = image ? new URL(image, Astro.site) : null;
     <main id="main">
       <slot />
     </main>
-    <Footer />
+    <Footer compact={compactFooter} />
     <ArtOverlay />
     <script>
       import "../scripts/motion";

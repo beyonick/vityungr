@@ -1,0 +1,161 @@
+---
+// Принты и Print Club. Разделы: лимитированные партии, открытый тираж, анимационные принты, Print Club.
+// Условия (подпись и номер, белые поля, бесплатная доставка, США и Канада) — со старого сайта /prints.
+// Клик по принту открывает просмотр, «Request» — форма заявки с этим принтом (/order?work=prints/…).
+import ChipNav from "../components/ChipNav.astro";
+import PrintClub from "../components/home/PrintClub.astro";
+import SectionHead from "../components/SectionHead.astro";
+import Wall, { type WallItem } from "../components/Wall.astro";
+import { openSizes } from "../data/prints";
+import Base from "../layouts/Base.astro";
+import {
+  formatPrice,
+  paperOf,
+  printOrderHref,
+  printPrice,
+  printStock,
+  printTitle,
+  prints,
+  ratioOf,
+  type Print,
+} from "../lib/works";
+
+const of = (kind: Print["kind"]) =>
+  prints.filter((p) => p.kind === kind).sort((a, b) => Number(a.status !== "available") - Number(b.status !== "available"));
+
+const sizes = openSizes.map((s) => `${s.label.split(" (")[0]} ${formatPrice(s.price)}`).join(" or ");
+
+const card =
+  (anchor: string) =>
+  (p: Print): WallItem => {
+    const order = printOrderHref(p);
+    const paper = p.kind === "open" ? `9 × 12 in or A3, ${paperOf(p)}` : paperOf(p);
+    return {
+      src: p.images[0].src,
+      ratio: ratioOf(p),
+      alt: `${printTitle(p)}, print`,
+      href: order ?? `#${anchor}`,
+      title: p.title,
+      meta: paper,
+      price: printPrice(p),
+      viewTitle: printTitle(p),
+      viewMeta: [paper, printStock(p), printPrice(p)].filter((x, i, a) => x && a.indexOf(x) === i).join(" · "),
+      viewLinkLabel: "Request this print",
+      viewLink: !!order,
+      cta: { href: order, label: "Request", aside: printStock(p) },
+    };
+  };
+
+const blocks = [
+  {
+    id: "limited",
+    title: "Limited batches",
+    intro: "Five pieces per batch. When a batch is gone, it sometimes comes back in stock, again only five.",
+    items: of("limited"),
+    height: 230,
+  },
+  {
+    id: "open",
+    title: "Open edition",
+    intro: `On 240 gsm semi-matte paper, in two sizes: ${sizes}.`,
+    items: of("open"),
+    height: 230,
+  },
+  {
+    id: "animation",
+    title: "Animation prints",
+    intro:
+      "I break each animation down into single frames. Every animation print is one of them, so the moving parts sit in a different place for every collector.",
+    items: of("animation"),
+    height: 260,
+  },
+].map((b) => ({ ...b, available: b.items.filter((p) => p.status === "available").length }));
+---
+
+<Base
+  title="Prints"
+  description="Signed and numbered prints by Vityungr: limited batches of five, open edition and one-of-a-kind animation prints, plus a monthly Print Club. Free worldwide shipping."
+>
+  <section class="pr" aria-labelledby="prints-title">
+    <SectionHead
+      n="—"
+      label="Prints"
+      aside="Signed · Free worldwide shipping"
+      title="Prints"
+      titleId="prints-title"
+      level={1}
+    >
+      <p>
+        Every print is hand-signed and numbered. They come with white borders, since every painting has its own
+        proportions. International shipping is free.
+      </p>
+      <p>For now only 9 × 12 in and A4 prints can go to the US and Canada.</p>
+    </SectionHead>
+
+    <ChipNav
+      label="Kinds of prints"
+      links={[
+        ...blocks.map((b) => ({ href: `#${b.id}`, label: b.title, count: b.available })),
+        { href: "#print-club", label: "Print Club" },
+      ]}
+    />
+
+    {
+      blocks.map((b, i) => (
+        <div class="pr__block" id={b.id}>
+          <div class="pr__head label" data-reveal="text">
+            <span>
+              <span class="pr__n num">0{i + 1}</span>
+              {b.title}
+            </span>
+            <span class="muted">
+              {b.available === b.items.length ? `${b.available} available` : `${b.available} of ${b.items.length} available`}
+            </span>
+          </div>
+          <p class="pr__intro muted" data-reveal="text">
+            {b.intro}
+          </p>
+          <Wall items={b.items.map(card(b.id))} height={b.height} />
+        </div>
+      ))
+    }
+  </section>
+
+  <PrintClub n="04" />
+</Base>
+
+<style>
+  .pr {
+    padding-top: clamp(120px, 16vh, 180px);
+  }
+
+  .pr__block {
+    scroll-margin-top: 24px;
+  }
+
+  .pr__block + .pr__block {
+    margin-top: clamp(72px, 8vw, 128px);
+  }
+
+  .pr__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 var(--gutter);
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+
+  .pr__n {
+    display: inline-block;
+    min-width: 3em;
+    color: var(--ink-3);
+  }
+
+  .pr__intro {
+    max-width: 52ch;
+    margin: 16px var(--gutter) clamp(24px, 2.6vw, 36px);
+    text-wrap: pretty;
+  }
+
+</style>

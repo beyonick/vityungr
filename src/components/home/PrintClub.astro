@@ -4,6 +4,11 @@ import { printClub } from "../../data/site";
 import { loadImage, prints } from "../../lib/works";
 import SectionHead from "../SectionHead.astro";
 
+interface Props {
+  n?: string;
+}
+
+const { n = "04" } = Astro.props;
 const club = prints.find((p) => p.kind === "print-club")!;
 const photo = await loadImage(club.images[0].src);
 const steps = [
@@ -14,7 +19,7 @@ const steps = [
 ---
 
 <section class="section club" id="print-club" aria-labelledby="club-title">
-  <SectionHead n="04" label="Print Club" aside="Monthly subscription" title="Vityungr Print Club" titleId="club-title">
+  <SectionHead n={n} label="Print Club" aside="Monthly subscription" title="Vityungr Print Club" titleId="club-title">
     <p>
       The easiest way to own my work. Every month members get a print of the best painting I made that month.
     </p>
