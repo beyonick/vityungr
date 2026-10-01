@@ -1,8 +1,8 @@
 ---
-// Контакты и «обо мне» на одной странице: сверху блок «Write to me» (тот же, что в подвале),
-// ниже рассказ с фото. Подвал здесь короткий, чтобы блок контактов не повторялся.
+// «Обо мне» и контакты на одной странице: сверху история (видео, три главы), ниже блок «Write to me»
+// (тот же, что в подвале). Подвал здесь короткий, чтобы блок контактов не повторялся.
+import AboutStory from "../components/AboutStory.astro";
 import ContactBlock from "../components/ContactBlock.astro";
-import About from "../components/home/About.astro";
 import Base from "../layouts/Base.astro";
 ---
 
@@ -11,14 +11,8 @@ import Base from "../layouts/Base.astro";
   description="Write to Vityungr (Viktor Grachev), a plein-air painter based in Montenegro: email, social media, requests and collaborations."
   compactFooter
 >
-  <section class="contact" aria-labelledby="contact-title">
-    <ContactBlock n="—" level={1} />
+  <AboutStory />
+  <section class="section" id="contact" aria-labelledby="contact-title">
+    <ContactBlock n="—" />
   </section>
-  <About n="—" more={false} />
 </Base>
-
-<style>
-  .contact {
-    padding-top: clamp(120px, 16vh, 180px);
-  }
-</style>

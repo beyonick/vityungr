@@ -1,17 +1,17 @@
 ---
-// «Обо мне»: заголовок по диагонали — первая строка сверху слева, вторая снизу справа,
-// между ними фото и текст. При скролле строки съезжаются навстречу, фото плывут с разной скоростью.
+// «Обо мне» на главной: заголовок по диагонали — первая строка сверху слева, вторая снизу справа,
+// между ними фото и текст. Первая строка поднимается по буквам, вторая съезжается при скролле,
+// фото плывут с разной скоростью. На /contact — своя история (AboutStory.astro).
 import { Image } from "astro:assets";
 import windowPhoto from "../../assets/vitya/painting-by-window.jpg";
 import snow from "../../assets/vitya/plein-air-snow.jpg";
+import Chars from "../Chars.astro";
 
 interface Props {
   n?: string;
-  /** На главной — ссылка «обо мне и контакты» на /contact; на самой /contact не нужна */
-  more?: boolean;
 }
 
-const { n = "06", more = true } = Astro.props;
+const { n = "06" } = Astro.props;
 ---
 
 <section class="section about" id="about" aria-labelledby="about-title" data-about>
@@ -24,7 +24,7 @@ const { n = "06", more = true } = Astro.props;
 
   <div class="about__grid pad">
     <h2 id="about-title" class="about__title display">
-      <span class="about__line about__line--1" data-about-line="-1" data-reveal="text">Hi, I’m Viktor.</span>
+      <Chars class="about__line about__line--1" text="Hi, I’m Viktor." />
       <span class="about__line about__line--2" data-about-line="1" data-reveal="text"
         ><em>You can call me Vityungr.</em></span
       >
@@ -66,13 +66,9 @@ const { n = "06", more = true } = Astro.props;
       <p class="muted">
         Right now I’m based in Montenegro, where I paint, ship my work around the world and collaborate with galleries.
       </p>
-      {
-        more && (
-          <p class="about__more">
-            <a class="tlink" href="/contact">How to reach me</a>
-          </p>
-        )
-      }
+      <p class="about__more">
+        <a class="tlink" href="/contact">How to reach me</a>
+      </p>
     </div>
   </div>
 </section>
@@ -98,13 +94,13 @@ const { n = "06", more = true } = Astro.props;
     letter-spacing: -0.04em;
   }
 
-  .about__line {
+  .about__grid :global(.about__line) {
     display: block;
     font-size: clamp(3rem, 0.9rem + 6.2vw, 8.75rem);
     white-space: nowrap;
   }
 
-  .about__line--1 {
+  .about__grid :global(.about__line--1) {
     grid-column: 1 / span 8;
     grid-row: 1;
   }
@@ -177,11 +173,11 @@ const { n = "06", more = true } = Astro.props;
       grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 
-    .about__line {
+    .about__grid :global(.about__line) {
       white-space: normal;
     }
 
-    .about__line--1 {
+    .about__grid :global(.about__line--1) {
       grid-column: 1 / -1;
     }
 

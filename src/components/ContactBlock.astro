@@ -16,8 +16,11 @@ const { n = "07", level = 2 } = Astro.props;
   <p>I answer every message myself, usually within a couple of days.</p>
   <p>To buy a painting or a print, send a <a class="ulink" href="/order">request</a>: I’ll reply by email.</p>
   <p>Galleries, exhibitions and collaborations: the same address.</p>
-  <p><a class="ftr__mail serif" href={`mailto:${site.email}`}>{site.email}</a></p>
 </SectionHead>
+
+<p class="ftr__mailrow pad" data-reveal="text">
+  <a class="ftr__mail serif" href={`mailto:${site.email}`}>{site.email}</a>
+</p>
 
 <div class="ftr__cols pad" data-reveal="text">
   <div>
@@ -51,14 +54,25 @@ const { n = "07", level = 2 } = Astro.props;
 </div>
 
 <style>
+  /* Почта — крупно, на всю ширину */
+  .ftr__mailrow {
+    margin-bottom: clamp(48px, 6vw, 96px);
+  }
+
   .ftr__mail {
     display: inline-block;
-    margin-top: 6px;
     color: var(--ink);
-    font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
-    line-height: 1.2;
+    font-size: clamp(1.6rem, 0.5rem + 5.4vw, 6rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
     background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+    transition: background-size 0.5s var(--ease-out);
     overflow-wrap: anywhere;
+  }
+
+  .ftr__mail:hover {
+    background-size: 0 1px;
+    background-position: 100% 100%;
   }
 
   .ftr__cols {

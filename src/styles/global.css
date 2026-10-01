@@ -308,6 +308,38 @@ html.js:not(.no-motion) [data-reveal="rise"].is-in {
     transform 2.2s var(--ease-out) var(--d, 0ms);
 }
 
+/* По буквам (Chars.astro): строка на месте, каждая буква (.ch, свой --i) мягко поднимается из размытия */
+.ch-word,
+.ch {
+  display: inline-block;
+}
+
+.ch-word {
+  white-space: nowrap;
+}
+
+html.js:not(.no-motion) [data-reveal="chars"] {
+  opacity: 1;
+  transform: none;
+}
+
+html.js:not(.no-motion) [data-reveal="chars"] .ch {
+  opacity: 0;
+  transform: translate3d(0, 0.5em, 0);
+  filter: blur(8px);
+}
+
+html.js:not(.no-motion) [data-reveal="chars"].is-in .ch {
+  --cd: calc(var(--d, 0ms) + var(--i, 0) * 45ms);
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+  transition:
+    opacity 0.9s var(--ease-soft) var(--cd),
+    transform 1.4s var(--ease-out) var(--cd),
+    filter 1s var(--ease-soft) var(--cd);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

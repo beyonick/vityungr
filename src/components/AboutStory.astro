@@ -1,0 +1,359 @@
+---
+// «Обо мне» на /contact — история в три главы.
+// Сверху видео на всю ширину, поверх заголовок: обе строки поднимаются по буквам.
+// Ниже главы по сетке в 12 колонок, зигзагом: текст и иллюстрация меняются сторонами.
+// Только вертикальное движение: появление снизу, без съезда по горизонтали.
+// Видео: public/video/about.mp4, кадр-заставка public/video/about.jpg (если есть).
+import fs from "node:fs";
+import path from "node:path";
+import { Image } from "astro:assets";
+import windowPhoto from "../assets/vitya/painting-by-window.jpg";
+import snow from "../assets/vitya/plein-air-snow.jpg";
+import { findWork, loadImage, workHref } from "../lib/works";
+import Chars from "./Chars.astro";
+
+const inPublic = (file: string) => fs.existsSync(path.join(process.cwd(), "public", file));
+const videoSrc = "/video/about.mp4";
+const posterSrc = "/video/about.jpg";
+const hasVideo = inPublic(videoSrc);
+const poster = inPublic(posterSrc) ? posterSrc : undefined;
+
+const moscow = findWork("originals/moscow/kitay-gorod");
+const moscowImg = await loadImage(moscow.images[0].src);
+
+const line1 = "Hi, I’m Viktor.";
+---
+
+<section class="story" aria-labelledby="about-title" data-story>
+  <div class="story__hero pad">
+    <div class="story__frame">
+      {
+        hasVideo ? (
+          <video
+            class="story__video"
+            src={videoSrc}
+            poster={poster}
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            aria-label="Viktor painting outdoors in a mountain grove, Montenegro"
+            data-story-video
+          />
+        ) : (
+          <div class="story__video story__video--ph" />
+        )
+      }
+      <div class="story__over">
+        <p class="story__meta label">
+          <span>About</span>
+          <span>Moscow Academic Art College, 2021</span>
+        </p>
+        <h1 id="about-title" class="story__title display">
+          <Chars class="story__line" text={line1} />
+          <em><Chars class="story__line" text="You can call me Vityungr." from={[...line1].length} /></em>
+        </h1>
+      </div>
+    </div>
+  </div>
+
+  <ol class="story__chapters">
+    <li class="chap chap--1 pad">
+      <p class="chap__k label" data-reveal="text"><span class="num">01</span>Moscow, 2021</p>
+      <p class="chap__text" data-reveal="text">
+        I was born in Russia and graduated from the Moscow Academic Art College in 2021. In 2022 I moved abroad, and since
+        then I’ve lived in several countries, each with its own nature and culture.
+      </p>
+      <figure class="chap__fig chap__fig--art" data-reveal>
+        <a href={workHref(moscow)}>
+          <Image
+            src={moscowImg}
+            alt={`${moscow.title}, a painting of Moscow`}
+            widths={[400, 700, 1000]}
+            sizes="(max-width: 859px) 70vw, 30vw"
+            format="webp"
+            quality={82}
+          />
+        </a>
+        <figcaption class="chap__cap muted"><em>{moscow.title}</em>, Moscow</figcaption>
+      </figure>
+    </li>
+
+    <li class="chap chap--2 pad">
+      <figure class="chap__fig chap__fig--photo" data-reveal>
+        <Image
+          src={snow}
+          alt="Viktor painting at an easel in a snowy forest, wearing a red hood"
+          widths={[480, 800, 1200]}
+          sizes="(max-width: 859px) 100vw, 42vw"
+          format="webp"
+          quality={80}
+        />
+        <figcaption class="chap__cap muted">Painting in the snow</figcaption>
+      </figure>
+      <p class="chap__k label" data-reveal="text"><span class="num">02</span>Outdoors</p>
+      <p class="chap__text" data-reveal="text">
+        Most of my work is painted outdoors, in rain, heat and −18°C. Larger pieces I finish in the studio, in tempera, and
+        each of them takes a month or more.
+      </p>
+    </li>
+
+    <li class="chap chap--3 pad">
+      <p class="chap__k label" data-reveal="text"><span class="num">03</span>Montenegro, now</p>
+      <p class="chap__text" data-reveal="text">
+        Right now I’m based in Montenegro, where I paint, ship my work around the world and collaborate with galleries.
+      </p>
+      <figure class="chap__fig chap__fig--photo" data-reveal>
+        <Image
+          src={windowPhoto}
+          alt="Viktor painting by an open window with mountains outside"
+          widths={[400, 700, 1000]}
+          sizes="(max-width: 859px) 100vw, 34vw"
+          format="webp"
+          quality={80}
+        />
+        <figcaption class="chap__cap muted">Painting by the window</figcaption>
+      </figure>
+    </li>
+  </ol>
+</section>
+
+<style>
+  /* ---------- Видео с заголовком ---------- */
+  .story__hero {
+    padding-top: 64px;
+  }
+
+  .story__frame {
+    position: relative;
+    height: max(480px, calc(100svh - 64px - var(--gutter)));
+    overflow: hidden;
+    background: #1d1d1d;
+  }
+
+  .story__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .story__video--ph {
+    background: linear-gradient(135deg, #2a2a2a, #111);
+  }
+
+  /* Затемнение сверху и снизу — чтобы белый текст читался на любом кадре */
+  .story__over {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: clamp(16px, 2vw, 28px);
+    color: #fff;
+    background:
+      linear-gradient(to bottom, rgb(0 0 0 / 0.35), transparent 22%),
+      linear-gradient(to top, rgb(0 0 0 / 0.55), transparent 55%);
+  }
+
+  .story__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    text-align: right;
+  }
+
+  .story__title {
+    font-size: clamp(2.5rem, 0.9rem + 6.2vw, 8.75rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    text-wrap: initial;
+  }
+
+  .story__title :global(.story__line) {
+    display: block;
+  }
+
+  .story__title em {
+    font-style: italic;
+    font-variation-settings: "SOFT" 100, "WONK" 1;
+  }
+
+  /* ---------- Главы ---------- */
+  .story__chapters {
+    padding-top: clamp(120px, 13vw, 220px);
+  }
+
+  .chap {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(16px, 1.8vw, 28px);
+    row-gap: clamp(20px, 2.4vw, 36px);
+    align-content: start;
+  }
+
+  .chap + .chap {
+    margin-top: clamp(120px, 14vw, 240px);
+  }
+
+  .chap__k {
+    display: flex;
+    gap: 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  .chap__k .num {
+    min-width: 3em;
+    color: var(--ink-3);
+  }
+
+  .chap__text {
+    font-family: var(--f-serif);
+    font-weight: 340;
+    font-size: clamp(1.375rem, 0.95rem + 1.35vw, 2.375rem);
+    line-height: 1.22;
+    letter-spacing: -0.015em;
+    text-wrap: pretty;
+  }
+
+  .chap__fig :global(img) {
+    width: 100%;
+    height: auto;
+  }
+
+  .chap__fig--art :global(img) {
+    box-shadow: var(--shadow-rest);
+  }
+
+  .chap__fig--photo :global(img) {
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+
+  .chap__cap {
+    margin-top: 10px;
+    font-size: var(--t-small);
+  }
+
+  /* 01: текст слева, картина справа и чуть выше */
+  .chap--1 .chap__k {
+    grid-column: 1 / span 6;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .chap--1 .chap__text {
+    grid-column: 1 / span 6;
+    grid-row: 2;
+  }
+
+  .chap--1 .chap__fig {
+    grid-column: 9 / span 4;
+    grid-row: 1 / span 3;
+  }
+
+  /* 02: большое фото слева, текст справа ниже середины */
+  .chap--2 .chap__fig {
+    grid-column: 1 / span 5;
+    grid-row: 1 / span 3;
+  }
+
+  .chap--2 .chap__fig :global(img) {
+    object-position: 58% 50%;
+  }
+
+  .chap--2 .chap__k {
+    grid-column: 7 / span 6;
+    grid-row: 2;
+    align-self: end;
+    margin-top: clamp(80px, 12vw, 220px);
+  }
+
+  .chap--2 .chap__text {
+    grid-column: 7 / span 6;
+    grid-row: 3;
+  }
+
+  /* 03: текст со второй колонки, фото справа */
+  .chap--3 .chap__k {
+    grid-column: 2 / span 5;
+    grid-row: 1;
+  }
+
+  .chap--3 .chap__text {
+    grid-column: 2 / span 5;
+    grid-row: 2;
+  }
+
+  .chap--3 .chap__fig {
+    grid-column: 8 / span 4;
+    grid-row: 1 / span 3;
+    margin-top: clamp(40px, 6vw, 120px);
+  }
+
+  .chap--3 .chap__fig :global(img) {
+    aspect-ratio: 1;
+    object-position: 40% 50%;
+  }
+
+  @media (max-width: 859px) {
+    .story__frame {
+      height: max(440px, 78svh);
+    }
+
+    .chap {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .chap .chap__k,
+    .chap .chap__text {
+      grid-column: 1 / -1;
+      margin-top: 0;
+    }
+
+    .chap .chap__k {
+      grid-row: 1;
+    }
+
+    .chap .chap__text {
+      grid-row: 2;
+    }
+
+    .chap .chap__fig {
+      grid-row: 3;
+      margin-top: 8px;
+    }
+
+    .chap--1 .chap__fig {
+      grid-column: 2 / span 4;
+    }
+
+    .chap--2 .chap__fig {
+      grid-column: 1 / -1;
+    }
+
+    .chap--3 .chap__fig {
+      grid-column: 2 / -1;
+    }
+  }
+</style>
+
+<script>
+  // Видео играет, только пока его видно. Без анимаций — на паузе, с кнопками.
+  const video = document.querySelector<HTMLVideoElement>("[data-story-video]");
+  if (video) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      video.removeAttribute("autoplay");
+      video.pause();
+      video.controls = true;
+    } else if ("IntersectionObserver" in window) {
+      new IntersectionObserver(([e]) => {
+        if (e.isIntersecting) video.play().catch(() => {});
+        else video.pause();
+      }).observe(video);
+    }
+  }
+</script>

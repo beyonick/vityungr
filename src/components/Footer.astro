@@ -1,6 +1,7 @@
 ---
-// Подвал: блок контактов и строка с документами. compact — только строка (на /contact блок уже вверху).
-import { site } from "../data/site";
+// Подвал: чёрный, на всех страницах. Блок контактов, пункты меню и строка с документами.
+// compact — без блока контактов (на /contact он уже на странице).
+import { nav, site } from "../data/site";
 import ContactBlock from "./ContactBlock.astro";
 
 interface Props {
@@ -12,11 +13,25 @@ const year = new Date().getFullYear();
 ---
 
 <footer
-  class:list={["ftr", { section: !compact, "ftr--compact": compact }]}
+  class:list={["ftr", { "ftr--compact": compact }]}
   id={compact ? undefined : "contact"}
   aria-labelledby={compact ? undefined : "contact-title"}
 >
   {!compact && <ContactBlock />}
+
+  <nav class="ftr__nav pad" aria-label="Footer">
+    <ul>
+      {
+        nav.map((l) => (
+          <li>
+            <a class="serif" href={l.href}>
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
 
   <div class="ftr__base pad label muted">
     <span>© {year} {site.fullName}</span>
@@ -29,15 +44,58 @@ const year = new Date().getFullYear();
 </footer>
 
 <style>
+  /* Тёмная тема только внутри подвала: те же токены, другие значения */
   .ftr {
+    --bg: #000;
+    --ink: #fff;
+    --ink-2: #9a9a9a;
+    --ink-3: #666;
+    --line: rgb(255 255 255 / 0.18);
+
+    color-scheme: dark;
+    margin-top: clamp(96px, 10vw, 160px);
+    padding-top: clamp(80px, 9vw, 150px);
     padding-bottom: 20px;
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  .ftr--compact {
+    padding-top: clamp(56px, 6vw, 96px);
+  }
+
+  .ftr__nav {
+    margin-top: clamp(72px, 8vw, 128px);
+  }
+
+  .ftr--compact .ftr__nav {
+    margin-top: 0;
+  }
+
+  .ftr__nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 clamp(24px, 3vw, 48px);
+  }
+
+  .ftr__nav a {
+    display: inline-block;
+    padding-block: 4px;
+    font-size: clamp(1.5rem, 1rem + 1.6vw, 2.5rem);
+    line-height: 1.2;
+    color: var(--ink-2);
+    transition: color 0.3s var(--ease-soft);
+  }
+
+  .ftr__nav a:hover {
+    color: var(--ink);
   }
 
   .ftr__base {
     display: flex;
     justify-content: space-between;
     gap: 16px;
-    margin-top: clamp(56px, 7vw, 100px);
+    margin-top: clamp(40px, 5vw, 72px);
     padding-top: 14px;
     border-top: 1px solid var(--line);
     margin-inline: var(--gutter);
@@ -67,9 +125,5 @@ const year = new Date().getFullYear();
     .ftr__base {
       flex-direction: column;
     }
-  }
-
-  .ftr--compact .ftr__base {
-    margin-top: clamp(96px, 10vw, 160px);
   }
 </style>

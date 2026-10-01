@@ -1,0 +1,34 @@
+---
+// Строка, которая появляется по буквам (data-reveal="chars", стили в global.css).
+// Слово не рвётся, у каждой буквы свой --i для задержки. Скринридер читает строку целиком.
+interface Props {
+  text: string;
+  class?: string;
+  /** Сдвиг нумерации букв — вторая строка начинает после первой */
+  from?: number;
+}
+
+const { text, class: cls, from = 0 } = Astro.props;
+let k = from;
+const words = text.split(" ").map((w) => [...w].map((c) => ({ c, i: k++ })));
+---
+
+<span class={cls} data-reveal="chars">
+  <span class="sr-only">{text}</span>
+  <span aria-hidden="true">
+    {
+      words.map((word, wi) => (
+        <Fragment>
+          {wi > 0 && " "}
+          <span class="ch-word">
+            {word.map(({ c, i }) => (
+              <span class="ch" style={`--i:${i}`}>
+                {c}
+              </span>
+            ))}
+          </span>
+        </Fragment>
+      ))
+    }
+  </span>
+</span>
