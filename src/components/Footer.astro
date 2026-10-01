@@ -1,5 +1,5 @@
 ---
-// Подвал: чёрный, на всех страницах. Блок контактов, пункты меню и строка с документами.
+// Подвал: чёрный, на всех страницах. Блок контактов, пункты меню, строка с документами и подпись автора сайта.
 import { nav, site } from "../data/site";
 import { langOf, tr } from "../i18n";
 import ContactBlock from "./ContactBlock.astro";
@@ -34,6 +34,13 @@ const year = new Date().getFullYear();
     </span>
     <a href="#top">{t("Back to top ↑", "Наверх ↑")}</a>
   </div>
+
+  <p class="ftr__credit pad muted">
+    {t("Made with love and attention to every detail.", "Сделано с любовью и вниманием к каждой детали.")}{" "}
+    <a href="https://nicktmsh.com" rel="noopener" target="_blank">
+      nicktmsh<span class="sr-only">{t(" (opens in a new tab)", " (откроется в новой вкладке)")}</span>
+    </a>
+  </p>
 </footer>
 
 <style>
@@ -104,6 +111,23 @@ const year = new Date().getFullYear();
 
   .ftr__legal a:hover {
     color: var(--ink);
+  }
+
+  /* Подпись автора сайта: обычным мелким текстом, имя — белым, на наведении подчёркивается */
+  .ftr__credit {
+    margin: 14px var(--gutter) 0;
+    padding-inline: 0;
+    font-size: var(--t-small);
+  }
+
+  .ftr__credit a {
+    color: var(--ink);
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+    transition: background-size 0.4s var(--ease-out);
+  }
+
+  .ftr__credit a:hover {
+    background-size: 100% 1px;
   }
 
   @media (max-width: 599px) {
