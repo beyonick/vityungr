@@ -2,6 +2,7 @@
 // Картина с подписью. Название видно всегда, цена и размер проявляются при наведении.
 // Наведение и клик обрабатывает scripts/art.ts: картина выезжает снизу экрана, по клику открывается.
 import { getImage, Image } from "astro:assets";
+import { langOf, tr } from "../i18n";
 import { loadImage } from "../lib/works";
 
 interface Props {
@@ -43,7 +44,7 @@ const {
   note,
   viewTitle,
   viewMeta,
-  viewLinkLabel = "View the work",
+  viewLinkLabel,
   order,
   viewLink = true,
   cta,
@@ -52,6 +53,8 @@ const {
   reveal = "card",
 } = Astro.props;
 
+const t = tr(langOf(Astro.currentLocale));
+const linkLabel = viewLinkLabel ?? t("View the work", "Страница работы");
 const image = await loadImage(src);
 const usable = widths.filter((w) => w <= image.width);
 const ratio = image.width / image.height;
@@ -78,7 +81,7 @@ const full = await getImage({ src: image, width: Math.min(image.width, 1600), fo
         data-art-title={viewTitle ?? title}
         data-art-meta={viewMeta ?? [meta, price].filter(Boolean).join(" · ")}
         data-art-href={viewLink ? href : undefined}
-        data-art-href-label={viewLinkLabel}
+        data-art-href-label={linkLabel}
         data-art-order={order}
       />
     </span>
@@ -94,7 +97,7 @@ const full = await getImage({ src: image, width: Math.min(image.width, 1600), fo
         <p class="pt__cta">
           {cta.href && (
             <a class="tlink" href={cta.href}>
-              {cta.label ?? "Request"}
+              {cta.label ?? t("Request", "Заявка")}
             </a>
           )}
           {cta.aside && <span class="muted">{cta.aside}</span>}

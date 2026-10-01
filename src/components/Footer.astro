@@ -1,31 +1,24 @@
 ---
 // Подвал: чёрный, на всех страницах. Блок контактов, пункты меню и строка с документами.
-// compact — без блока контактов (на /contact он уже на странице).
 import { nav, site } from "../data/site";
+import { langOf, tr } from "../i18n";
 import ContactBlock from "./ContactBlock.astro";
 
-interface Props {
-  compact?: boolean;
-}
+const t = tr(langOf(Astro.currentLocale));
 
-const { compact = false } = Astro.props;
 const year = new Date().getFullYear();
 ---
 
-<footer
-  class:list={["ftr", { "ftr--compact": compact }]}
-  id={compact ? undefined : "contact"}
-  aria-labelledby={compact ? undefined : "contact-title"}
->
-  {!compact && <ContactBlock />}
+<footer class="ftr" id="contact" aria-labelledby="contact-title">
+  <ContactBlock />
 
-  <nav class="ftr__nav pad" aria-label="Footer">
+  <nav class="ftr__nav pad" aria-label={t("Footer", "Меню в подвале")}>
     <ul>
       {
         nav.map((l) => (
           <li>
             <a class="serif" href={l.href}>
-              {l.label}
+              {t(l.label, l.labelRu)}
             </a>
           </li>
         ))
@@ -34,12 +27,12 @@ const year = new Date().getFullYear();
   </nav>
 
   <div class="ftr__base pad label muted">
-    <span>© {year} {site.fullName}</span>
+    <span>© {year} {t(site.fullName, site.fullNameRu)}</span>
     <span class="ftr__legal">
-      <a href="/privacy">Privacy policy</a>
-      <a href="/consent">Consent to data processing</a>
+      <a href="/privacy">{t("Privacy policy", "Политика конфиденциальности")}</a>
+      <a href="/consent">{t("Consent to data processing", "Согласие на обработку данных")}</a>
     </span>
-    <a href="#top">Back to top ↑</a>
+    <a href="#top">{t("Back to top ↑", "Наверх ↑")}</a>
   </div>
 </footer>
 
@@ -60,16 +53,8 @@ const year = new Date().getFullYear();
     color: var(--ink);
   }
 
-  .ftr--compact {
-    padding-top: clamp(56px, 6vw, 96px);
-  }
-
   .ftr__nav {
     margin-top: clamp(72px, 8vw, 128px);
-  }
-
-  .ftr--compact .ftr__nav {
-    margin-top: 0;
   }
 
   .ftr__nav ul {

@@ -98,31 +98,107 @@ export const series: Series[] = [
   },
 ];
 
+// Серии по-русски: название, места, вступление
+export const seriesRu: Record<string, Pick<Series, "title" | "places" | "intro">> = {
+  new: {
+    title: "Новые работы",
+    places: "Только что с мольберта",
+    intro: "Самые свежие работы — пока они не стали частью какой-нибудь серии.",
+  },
+  montenegro: {
+    title: "Черногория",
+    places: "Будва, Дурмитор, Жабляк, Печ",
+    intro:
+      "Здесь я живу сейчас. Старый город Будвы, горы Дурмитора, Чёрное озеро и озеро Шишко и деревня в Пече, где, по словам моего друга, все — его родня. Кроме двух пчеловодов.",
+  },
+  serbia: {
+    title: "Сербия",
+    places: "Белград, Земун, Приеполье",
+    intro:
+      "Зима в Белграде: ворота крепости, Сава, первый снег на крышах Земуна, вид с башни Гардош. И один дождливый день в Приеполье.",
+  },
+  turkey: {
+    title: "Турция",
+    places: "Стамбул, Анталья",
+    intro:
+      "Месяцы прогулок по переулкам вдоль Босфора — Арнавуткёй, Ортакёй, Кузгунджук, Бебек: деревянные дома, крутые улочки и Галатская башня.",
+  },
+  bosnia: {
+    title: "Босния и Герцеговина",
+    places: "Мостар, Требине",
+    intro: "Короткие поездки через границу: старый мост в Мостаре, улицы Требине, лыжники на снежном склоне.",
+  },
+  tempera: {
+    title: "Темпера",
+    places: "Работы в мастерской",
+    intro:
+      "Неторопливые работы темперой на холсте, каждая — месяц или больше. Так я вижу всё с тех пор, как уехал из дома: воздушным, почти пузырчатым, будто подуешь — и всё рассыплется.",
+  },
+  altay: {
+    title: "Алтай",
+    places: "Река Бия, Акташ",
+    intro: "Поездка в горы Алтая: река Бия, лиственницы и этюд в Акташе, на высоте 3038 метров над уровнем моря.",
+  },
+  dacha: {
+    title: "Дача",
+    places: "Руза, Подмосковье",
+    intro: "Наша дача под Рузой: пруды, берёзы, апрельская грязь и долгие вечера. Некоторые из этих работ были на выставках.",
+  },
+  moscow: {
+    title: "Москва",
+    places: "Чертаново, Китай-город",
+    intro: "Город, где я учился: дворы Чертанова ранней весной и несколько небольших работ темперой.",
+  },
+  random: {
+    title: "Поездки",
+    places: "Тутаев, Санкт-Петербург, Волга",
+    intro: "Короткие поездки до отъезда: Тутаев на Волге, Санкт-Петербург и пара натюрмортов между ними.",
+  },
+};
+
+/** Название, места и вступление серии на языке страницы */
+export function seriesText(s: Series, lang: "en" | "ru"): Pick<Series, "title" | "places" | "intro"> {
+  return lang === "ru" && seriesRu[s.slug] ? seriesRu[s.slug] : s;
+}
+
 // Истории с пленэра — почти дословно из подписей к постам
 export const fieldNotes = [
   {
     work: "originals/montenegro/snowy-landscape-with-a-river",
     title: "Snowy Landscape with a River",
+    titleRu: "Снежный пейзаж с рекой",
     place: "Montenegro",
+    placeRu: "Черногория",
     text: "Painted this study at −18°C in the mountains.",
+    textRu: "Писал этот этюд в горах при −18°C.",
   },
   {
     work: "originals/montenegro/winter-in-the-mountains",
     title: "Winter in the Mountains",
+    titleRu: "Зима в горах",
     place: "Montenegro",
+    placeRu: "Черногория",
     text: "The people from the nearest house offered me coffee while digging their car out of the snow. They insisted I must visit Dubrovnik.",
+    textRu:
+      "Люди из ближайшего дома откапывали машину из снега и угостили меня кофе. И настояли, что мне обязательно нужно побывать в Дубровнике.",
   },
   {
     work: "originals/montenegro/northern-montenegro",
     title: "Northern Montenegro",
+    titleRu: "Северная Черногория",
     place: "Montenegro",
+    placeRu: "Черногория",
     text: "Several cows attacked me while I was painting this.",
+    textRu: "Пока я это писал, на меня напали несколько коров.",
   },
   {
     work: "originals/montenegro/pec",
     title: "Peć",
+    titleRu: "Печ",
     place: "Montenegro",
+    placeRu: "Черногория",
     text: "My friend who lives here says the entire village is his family. Except for two beekeepers.",
+    textRu: "Мой друг, который здесь живёт, говорит, что вся деревня — его родня. Кроме двух пчеловодов.",
   },
 ];
 

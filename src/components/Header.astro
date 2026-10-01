@@ -1,5 +1,6 @@
 ---
 import { nav, social } from "../data/site";
+import { langOf, pathIn, stripLang, tr } from "../i18n";
 
 interface Props {
   home?: boolean;
@@ -7,15 +8,26 @@ interface Props {
 
 // Открытый раздел подсвечен: /works/… — Works, /prints — Prints, /contact — Contact
 const { home = false } = Astro.props;
-const path = Astro.url.pathname;
-const links = nav.map((l) => ({ ...l, current: path === l.href || path.startsWith(`${l.href}/`) }));
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
+const path = stripLang(Astro.originPathname ?? Astro.url.pathname).replace(/(.)\/$/, "$1");
+const links = nav.map((l) => ({
+  href: l.href,
+  label: t(l.label, l.labelRu),
+  current: path === l.href || path.startsWith(`${l.href}/`),
+}));
 const instagram = social.find((s) => s.label === "Instagram")!;
+// Переключатель языка: та же страница на другом языке. hreflang — чтобы middleware не добавил к ссылке /ru
+const other = lang === "ru" ? "en" : "ru";
+const switchHref = pathIn(other, path);
 ---
 
 <header class="hdr" data-header>
-  <a class="hdr__mark serif" href={home ? "#top" : "/"} aria-label="Vityungr, home">Vityungr</a>
+  <a class="hdr__mark serif" href={home ? "#top" : "/"} aria-label={t("Vityungr, home", "Vityungr, на главную")}>
+    Vityungr
+  </a>
 
-  <nav class="hdr__nav" aria-label="Main">
+  <nav class="hdr__nav" aria-label={t("Main", "Главное меню")}>
     <ul>
       {
         links.map((l) => (
@@ -28,14 +40,20 @@ const instagram = social.find((s) => s.label === "Instagram")!;
       }
       <li>
         <a class="label" href={instagram.href} rel="noopener" target="_blank">
-          Instagram ↗<span class="sr-only"> (opens in a new tab)</span>
+          Instagram ↗<span class="sr-only">{t(" (opens in a new tab)", " (откроется в новой вкладке)")}</span>
+        </a>
+      </li>
+      <li class="hdr__lang label">
+        <span aria-current="true">{lang.toUpperCase()}</span>
+        <a href={switchHref} hreflang={other} lang={other} aria-label={t("Русская версия", "English version")}>
+          {other.toUpperCase()}
         </a>
       </li>
     </ul>
   </nav>
 
   <button class="hdr__toggle label" type="button" aria-expanded="false" aria-controls="menu" data-menu-toggle>
-    <span data-menu-label>Menu</span>
+    <span data-menu-label data-closed={t("Menu", "Меню")} data-open={t("Close", "Закрыть")}>{t("Menu", "Меню")}</span>
   </button>
 
   <div class="menu" id="menu" hidden data-menu>
@@ -61,6 +79,10 @@ const instagram = social.find((s) => s.label === "Instagram")!;
         ))
       }
     </ul>
+    <p class="menu__lang label">
+      <span aria-current="true">{lang === "ru" ? "Русский" : "English"}</span>
+      <a href={switchHref} hreflang={other} lang={other}>{other === "ru" ? "Русский" : "English"}</a>
+    </p>
   </div>
 </header>
 
@@ -170,6 +192,32 @@ const instagram = social.find((s) => s.label === "Instagram")!;
     color: var(--ink-2);
   }
 
+  /* Язык: текущий — чёрным, другой — серой ссылкой */
+  .hdr__lang,
+  .menu__lang {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hdr__lang a,
+  .menu__lang a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    color: var(--ink-2);
+    transition: color 0.3s var(--ease-soft);
+  }
+
+  .hdr__lang a:hover,
+  .menu__lang a:hover {
+    color: var(--ink);
+  }
+
+  .menu__lang {
+    gap: 22px;
+  }
+
   @media (max-width: 859px) {
     .hdr__nav {
       display: none;
@@ -209,7 +257,7 @@ const instagram = social.find((s) => s.label === "Instagram")!;
     const setOpen = (open: boolean) => {
       toggle.setAttribute("aria-expanded", String(open));
       menu.hidden = !open;
-      label.textContent = open ? "Close" : "Menu";
+      label.textContent = (open ? label.dataset.open : label.dataset.closed) ?? "";
       document.documentElement.classList.toggle("menu-open", open);
       header?.classList.toggle("is-solid", !open && window.scrollY > 24);
       if (open) scroller.lock();

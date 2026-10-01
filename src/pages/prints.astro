@@ -7,6 +7,7 @@ import PrintClub from "../components/home/PrintClub.astro";
 import SectionHead from "../components/SectionHead.astro";
 import Wall, { type WallItem } from "../components/Wall.astro";
 import { openSizes } from "../data/prints";
+import { langOf, tr } from "../i18n";
 import Base from "../layouts/Base.astro";
 import {
   formatPrice,
@@ -17,55 +18,68 @@ import {
   printTitle,
   prints,
   ratioOf,
+  titleOf,
   type Print,
 } from "../lib/works";
+
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
 
 const of = (kind: Print["kind"]) =>
   prints.filter((p) => p.kind === kind).sort((a, b) => Number(a.status !== "available") - Number(b.status !== "available"));
 
-const sizes = openSizes.map((s) => `${s.label.split(" (")[0]} ${formatPrice(s.price)}`).join(" or ");
+const sizes = openSizes
+  .map((s) => `${t(s.label, s.labelRu).split(" (")[0]} ${formatPrice(s.price)}`)
+  .join(t(" or ", " или "));
 
 const card =
   (anchor: string) =>
   (p: Print): WallItem => {
     const order = printOrderHref(p);
-    const paper = p.kind === "open" ? `9 × 12 in or A3, ${paperOf(p)}` : paperOf(p);
+    const paper = p.kind === "open" ? `${t("9 × 12 in or A3", "9 × 12 дюймов или A3")}, ${paperOf(p, lang)}` : paperOf(p, lang);
+    const stock = printStock(p, lang);
+    const price = printPrice(p, lang);
     return {
       src: p.images[0].src,
       ratio: ratioOf(p),
-      alt: `${printTitle(p)}, print`,
+      alt: `${printTitle(p, lang)}, ${t("print", "принт")}`,
       href: order ?? `#${anchor}`,
-      title: p.title,
+      title: titleOf(p, lang),
       meta: paper,
-      price: printPrice(p),
-      viewTitle: printTitle(p),
-      viewMeta: [paper, printStock(p), printPrice(p)].filter((x, i, a) => x && a.indexOf(x) === i).join(" · "),
-      viewLinkLabel: "Request this print",
+      price,
+      viewTitle: printTitle(p, lang),
+      viewMeta: [paper, stock, price].filter((x, i, a) => x && a.indexOf(x) === i).join(" · "),
+      viewLinkLabel: t("Request this print", "Заявка на принт"),
       viewLink: !!order,
-      cta: { href: order, label: "Request", aside: printStock(p) },
+      cta: { href: order, label: t("Request", "Заявка"), aside: stock },
     };
   };
 
 const blocks = [
   {
     id: "limited",
-    title: "Limited batches",
-    intro: "Five pieces per batch. When a batch is gone, it sometimes comes back in stock, again only five.",
+    title: t("Limited batches", "Ограниченные тиражи"),
+    intro: t(
+      "Five pieces per batch. When a batch is gone, it sometimes comes back in stock, again only five.",
+      "Пять штук в тираже. Когда тираж заканчивается, он иногда появляется снова — и снова только пять штук.",
+    ),
     items: of("limited"),
     height: 230,
   },
   {
     id: "open",
-    title: "Open edition",
-    intro: `On 240 gsm semi-matte paper, in two sizes: ${sizes}.`,
+    title: t("Open edition", "Открытый тираж"),
+    intro: t(`On 240 gsm semi-matte paper, in two sizes: ${sizes}.`, `На полуматовой бумаге 240 г/м², два размера: ${sizes}.`),
     items: of("open"),
     height: 230,
   },
   {
     id: "animation",
-    title: "Animation prints",
-    intro:
+    title: t("Animation prints", "Анимационные принты"),
+    intro: t(
       "I break each animation down into single frames. Every animation print is one of them, so the moving parts sit in a different place for every collector.",
+      "Я разбиваю каждую анимацию на отдельные кадры. Каждый анимационный принт — один из них, поэтому у каждого коллекционера движущиеся детали застыли на своём месте.",
+    ),
     items: of("animation"),
     height: 260,
   },
@@ -73,30 +87,44 @@ const blocks = [
 ---
 
 <Base
-  title="Prints"
-  description="Signed and numbered prints by Vityungr: limited batches of five, open edition and one-of-a-kind animation prints, plus a monthly Print Club. Free worldwide shipping."
+  title={t("Prints", "Принты")}
+  description={t(
+    "Signed and numbered prints by Vityungr: limited batches of five, open edition and one-of-a-kind animation prints, plus a monthly Print Club. Free worldwide shipping.",
+    "Подписанные и пронумерованные принты Vityungr: ограниченные тиражи по пять штук, открытый тираж и анимационные принты в единственном экземпляре, а также ежемесячный принт-клуб. Бесплатная доставка по всему миру.",
+  )}
 >
   <section class="pr" aria-labelledby="prints-title">
     <SectionHead
       n="—"
-      label="Prints"
-      aside="Signed · Free worldwide shipping"
-      title="Prints"
+      label={t("Prints", "Принты")}
+      aside={t("Signed · Free worldwide shipping", "С подписью · Бесплатная доставка по миру")}
+      title={t("Prints", "Принты")}
       titleId="prints-title"
       level={1}
     >
       <p>
-        Every print is hand-signed and numbered. They come with white borders, since every painting has its own
-        proportions. International shipping is free.
+        {
+          t(
+            "Every print is hand-signed and numbered. They come with white borders, since every painting has its own proportions. International shipping is free.",
+            "Каждый принт подписан от руки и пронумерован. Они печатаются с белыми полями, потому что у каждой картины свои пропорции. Международная доставка бесплатная.",
+          )
+        }
       </p>
-      <p>For now only 9 × 12 in and A4 prints can go to the US and Canada.</p>
+      <p>
+        {
+          t(
+            "For now only 9 × 12 in and A4 prints can go to the US and Canada.",
+            "В США и Канаду пока можно отправить только принты 9 × 12 дюймов и A4.",
+          )
+        }
+      </p>
     </SectionHead>
 
     <ChipNav
-      label="Kinds of prints"
+      label={t("Kinds of prints", "Виды принтов")}
       links={[
         ...blocks.map((b) => ({ href: `#${b.id}`, label: b.title, count: b.available })),
-        { href: "#print-club", label: "Print Club" },
+        { href: "#print-club", label: t("Print Club", "Принт-клуб") },
       ]}
     />
 
@@ -109,7 +137,11 @@ const blocks = [
               {b.title}
             </span>
             <span class="muted">
-              {b.available === b.items.length ? `${b.available} available` : `${b.available} of ${b.items.length} available`}
+              {
+                b.available === b.items.length
+                  ? t(`${b.available} available`, `${b.available} в наличии`)
+                  : t(`${b.available} of ${b.items.length} available`, `${b.available} из ${b.items.length} в наличии`)
+              }
             </span>
           </div>
           <p class="pr__intro muted" data-reveal="text">

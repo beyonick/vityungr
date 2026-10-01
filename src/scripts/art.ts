@@ -11,6 +11,9 @@ const canHover = window.matchMedia("(hover: hover) and (pointer: fine)");
 
 const hero = document.querySelector<HTMLElement>("[data-hero]");
 const heroIntro = hero?.querySelector<HTMLElement>("[data-hero-intro]") ?? null;
+// data-hero-side (home/Hero.astro): выбранная картина стоит справа от видео, сверху ничего не опускается —
+// наведение на миниатюру только выбирает картину
+const heroSide = hero?.hasAttribute("data-hero-side") ?? false;
 
 /** Большая картина первого экрана, выбранная миниатюрой */
 const heroBig = (index: string | undefined) =>
@@ -62,7 +65,7 @@ const heroEdge = () => {
   const limit = heroIntro ? heroIntro.getBoundingClientRect().top - 28 : window.innerHeight * (2 / 3);
   return Math.min(window.innerHeight * (2 / 3), limit);
 };
-const heroActive = () => hero !== null && heroEdge() > window.innerHeight * 0.22;
+const heroActive = () => hero !== null && !heroSide && heroEdge() > window.innerHeight * 0.22;
 
 let showPeek: (art: HTMLImageElement) => void = () => {};
 let hidePeek: () => void = () => {};
@@ -81,7 +84,7 @@ if (peek && peekImg) {
   /** Доля картины, видимая из-за края экрана */
   const visibleShare = () => {
     const h = peek.offsetHeight || 1;
-    const shown = fromTop ? Math.min(heroEdge(), h) : Math.min(window.innerHeight * 0.24, h * 0.5);
+    const shown = fromTop ? Math.min(heroEdge(), h) : Math.min(window.innerHeight * 0.2, h * 0.5);
     return Math.max(0, shown) / h;
   };
   const target = () => (fromTop ? -1 : 1) * (100 - visibleShare() * 100);
@@ -262,7 +265,7 @@ if (viewer && viewerImg) {
     viewerImg.alt = art.alt || art.dataset.artTitle || "";
     link.hidden = !art.dataset.artHref;
     if (art.dataset.artHref) link.href = art.dataset.artHref;
-    linkLabel.textContent = art.dataset.artHrefLabel ?? "View the work";
+    linkLabel.textContent = art.dataset.artHrefLabel ?? linkLabel.dataset.default ?? "";
     orderLink.hidden = !art.dataset.artOrder;
     if (art.dataset.artOrder) orderLink.href = art.dataset.artOrder;
     viewerImg.style.aspectRatio = String(ratio);

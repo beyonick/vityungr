@@ -7,6 +7,9 @@ import Moving from "../../v1/components/home/Moving.astro";
 import PrintClub from "../../v1/components/home/PrintClub.astro";
 import SeriesGrid from "../../v1/components/home/SeriesGrid.astro";
 import Base from "../../v1/layouts/Base.astro";
+
+// Архив только по-английски: русская копия (/ru/v1/) ведёт сюда же
+if (Astro.currentLocale === "ru") return Astro.redirect("/v1/");
 ---
 
 <Base>

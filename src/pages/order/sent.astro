@@ -3,17 +3,34 @@
 import SectionHead from "../../components/SectionHead.astro";
 import Base from "../../layouts/Base.astro";
 import { site } from "../../data/site";
+import { langOf, tr } from "../../i18n";
+
+const t = tr(langOf(Astro.currentLocale));
 ---
 
-<Base title="Request sent" description="Your request has been sent." noindex>
+<Base title={t("Request sent", "Заявка отправлена")} description={t("Your request has been sent.", "Ваша заявка отправлена.")} noindex>
   <section class="sent" aria-labelledby="sent-title">
-    <SectionHead n="—" label="Order" aside="Request sent" title="Thank you." titleId="sent-title" level={1}>
-      <p>Your request is on its way to me. I’ll write back by email within a couple of days.</p>
+    <SectionHead
+      n="—"
+      label={t("Order", "Заказ")}
+      aside={t("Request sent", "Заявка отправлена")}
+      title={t("Thank you.", "Спасибо!")}
+      titleId="sent-title"
+      level={1}
+    >
       <p>
-        If nothing arrives, check the spam folder or write to me directly:{" "}
+        {
+          t(
+            "Your request is on its way to me. I’ll write back by email within a couple of days.",
+            "Заявка уже летит ко мне. Я отвечу по почте в течение пары дней.",
+          )
+        }
+      </p>
+      <p>
+        {t("If nothing arrives, check the spam folder or write to me directly:", "Если ответ не пришёл, проверьте папку «Спам» или напишите мне напрямую:")}{" "}
         <a class="tlink" href={`mailto:${site.email}`}>{site.email}</a>
       </p>
-      <p><a class="tlink" href="/works">Back to the works</a></p>
+      <p><a class="tlink" href="/works">{t("Back to the works", "Вернуться к работам")}</a></p>
     </SectionHead>
   </section>
 </Base>

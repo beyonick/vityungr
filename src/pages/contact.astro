@@ -1,18 +1,18 @@
 ---
-// «Обо мне» и контакты на одной странице: сверху история (видео, три главы), ниже блок «Write to me»
-// (тот же, что в подвале). Подвал здесь короткий, чтобы блок контактов не повторялся.
+// «Обо мне» и контакты: история (видео, три главы), а «Write to me» — в подвале, как на всех страницах.
 import AboutStory from "../components/AboutStory.astro";
-import ContactBlock from "../components/ContactBlock.astro";
+import { langOf, tr } from "../i18n";
 import Base from "../layouts/Base.astro";
+
+const t = tr(langOf(Astro.currentLocale));
 ---
 
 <Base
-  title="Contact"
-  description="Write to Vityungr (Viktor Grachev), a plein-air painter based in Montenegro: email, social media, requests and collaborations."
-  compactFooter
+  title={t("Contact", "Контакты")}
+  description={t(
+    "Write to Vityungr (Viktor Grachev), a plein-air painter based in Montenegro: email, social media, requests and collaborations.",
+    "Напишите Vityungr (Виктору Грачёву), художнику-пленэристу из Черногории: почта, соцсети, заявки и сотрудничество.",
+  )}
 >
   <AboutStory />
-  <section class="section" id="contact" aria-labelledby="contact-title">
-    <ContactBlock n="—" />
-  </section>
 </Base>

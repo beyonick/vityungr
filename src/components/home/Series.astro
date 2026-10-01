@@ -1,25 +1,33 @@
 ---
-import { series } from "../../data/series";
-import { coverOf, mediumSize, priceOrState, ratioOf, worksIn } from "../../lib/works";
+import { series, seriesText } from "../../data/series";
+import { langOf, plural, tr } from "../../i18n";
+import { coverOf, mediumSize, priceOrState, ratioOf, titleOf, worksIn } from "../../lib/works";
 import SectionHead from "../SectionHead.astro";
 import Wall, { type WallItem } from "../Wall.astro";
+
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
 
 // Семь серий в две ровные строки: 3 и 4. Новые работы, Москва и поездки на главную не попадают.
 const shown = series.filter((s) => !["new", "moscow", "random"].includes(s.slug));
 const items: WallItem[] = shown.map((s) => {
   const cover = coverOf(s.slug, s.cover);
   const count = worksIn(s.slug).length;
+  const { title, places } = seriesText(s, lang);
+  const coverTitle = titleOf(cover, lang);
   return {
     src: cover.images[0].src,
     ratio: ratioOf(cover),
-    alt: `${cover.title}, from the ${s.title} series`,
+    alt: t(`${coverTitle}, from the ${title} series`, `${coverTitle}, из серии «${title}»`),
     href: `/works/${s.slug}`,
-    title: s.title,
+    title,
     price: s.years,
-    meta: `${s.places} · ${count} works`,
-    viewTitle: cover.title,
-    viewMeta: [`${s.title} series`, mediumSize(cover), priceOrState(cover)].filter(Boolean).join(" · "),
-    viewLinkLabel: `See the ${s.title} series`,
+    meta: `${places} · ${count} ${t("works", plural(count, "работа", "работы", "работ"))}`,
+    viewTitle: coverTitle,
+    viewMeta: [t(`${title} series`, `Серия «${title}»`), mediumSize(cover, lang), priceOrState(cover, lang)]
+      .filter(Boolean)
+      .join(" · "),
+    viewLinkLabel: t(`See the ${title} series`, `Смотреть серию «${title}»`),
   };
 });
 const rows = [items.slice(0, 3), items.slice(3)];
@@ -28,14 +36,21 @@ const rows = [items.slice(0, 3), items.slice(3)];
 <section class="section" id="series" aria-labelledby="series-title">
   <SectionHead
     n="01"
-    label="Series"
-    aside={`${shown.length} places · 2021–2026`}
-    title="Every series grows out of a place I’ve lived in or travelled to."
+    label={t("Series", "Серии")}
+    aside={t(`${shown.length} places`, `${shown.length} ${plural(shown.length, "место", "места", "мест")}`) + " · 2021–2026"}
+    title={t(
+      "Every series grows out of a place I’ve lived in or travelled to.",
+      "Каждая серия вырастает из места, где я жил или куда приезжал.",
+    )}
     titleId="series-title"
   >
     <p>
-      I try to catch my connection with each place, so paintings from different countries end up looking completely
-      different. Montenegro is where I live now; the older series are from Russia and my first years abroad.
+      {
+        t(
+          "I try to catch my connection with each place, so paintings from different countries end up looking completely different. Montenegro is where I live now; the older series are from Russia and my first years abroad.",
+          "Я стараюсь поймать свою связь с каждым местом, поэтому картины из разных стран получаются совсем непохожими. Сейчас я живу в Черногории, а серии постарше — из России и первых лет за границей.",
+        )
+      }
     </p>
   </SectionHead>
   <div class="series__rows">

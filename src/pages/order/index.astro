@@ -2,20 +2,44 @@
 // Заявка на картину или принт. /order?work=<серия>/<папка> или ?work=prints/<вид>/<папка> — с уже выбранным.
 import OrderForm from "../../components/OrderForm.astro";
 import SectionHead from "../../components/SectionHead.astro";
+import { langOf, tr } from "../../i18n";
 import Base from "../../layouts/Base.astro";
+
+const t = tr(langOf(Astro.currentLocale));
 ---
 
 <Base
-  title="Request a purchase"
-  description="Request an original painting or a print by Vityungr. No payment on the site: I’ll email you to agree on shipping and payment."
+  title={t("Request a purchase", "Заявка на покупку")}
+  description={t(
+    "Request an original painting or a print by Vityungr. No payment on the site: I’ll email you to agree on shipping and payment.",
+    "Заявка на оригинал или принт Vityungr. Оплаты на сайте нет: я напишу вам на почту, и мы договоримся о доставке и оплате.",
+  )}
 >
   <section class="order" aria-labelledby="order-title">
-    <SectionHead n="—" label="Order" aside="No payment on the site" title="Request a purchase" titleId="order-title" level={1}>
+    <SectionHead
+      n="—"
+      label={t("Order", "Заказ")}
+      aside={t("No payment on the site", "Без оплаты на сайте")}
+      title={t("Request a purchase", "Заявка на покупку")}
+      titleId="order-title"
+      level={1}
+    >
       <p>
-        Choose a painting or a print and leave your contacts. I’ll write back by email within a couple of days to agree
-        on currency, payment and delivery.
+        {
+          t(
+            "Choose a painting or a print and leave your contacts. I’ll write back by email within a couple of days to agree on currency, payment and delivery.",
+            "Выберите картину или принт и оставьте контакты. В течение пары дней я напишу вам на почту, чтобы договориться о валюте, оплате и доставке.",
+          )
+        }
       </p>
-      <p>Everything is wrapped by hand and packed within 1–3 working days. Prints ship free worldwide.</p>
+      <p>
+        {
+          t(
+            "Everything is wrapped by hand and packed within 1–3 working days. Prints ship free worldwide.",
+            "Всё упаковываю вручную за 1–3 рабочих дня. Принты доставляются бесплатно по всему миру.",
+          )
+        }
+      </p>
     </SectionHead>
     <OrderForm />
   </section>

@@ -1,21 +1,39 @@
 ---
-// Блок «Write to me»: почта, соцсети, поддержка, мастерская.
-// Стоит в подвале каждой страницы, а на /contact — первым на странице (level={1}), подвал там короткий.
+// Блок «Write to me»: почта, соцсети, поддержка, мастерская. Стоит в подвале каждой страницы.
 import { printClub, site, social } from "../data/site";
+import { langOf, tr } from "../i18n";
 import SectionHead from "./SectionHead.astro";
 
-interface Props {
-  n?: string;
-  level?: 1 | 2;
-}
-
-const { n = "07", level = 2 } = Astro.props;
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
 ---
 
-<SectionHead n={n} label="Contact" aside="Questions, orders, shipping" title="Write to me" titleId="contact-title" level={level}>
-  <p>I answer every message myself, usually within a couple of days.</p>
-  <p>To buy a painting or a print, send a <a class="ulink" href="/order">request</a>: I’ll reply by email.</p>
-  <p>Galleries, exhibitions and collaborations: the same address.</p>
+<SectionHead
+  n="07"
+  label={t("Contact", "Контакты")}
+  aside={t("Questions, orders, shipping", "Вопросы, заказы, доставка")}
+  title={t("Write to me", "Напишите мне")}
+  titleId="contact-title"
+>
+  {
+    lang === "ru" ? (
+      <Fragment>
+        <p>Отвечаю на все письма сам, обычно в течение пары дней.</p>
+        <p>
+          Чтобы купить картину или принт, отправьте <a class="ulink" href="/order">заявку</a> — я отвечу по почте.
+        </p>
+        <p>Галереи, выставки и сотрудничество — на этот же адрес.</p>
+      </Fragment>
+    ) : (
+      <Fragment>
+        <p>I answer every message myself, usually within a couple of days.</p>
+        <p>
+          To buy a painting or a print, send a <a class="ulink" href="/order">request</a>: I’ll reply by email.
+        </p>
+        <p>Galleries, exhibitions and collaborations: the same address.</p>
+      </Fragment>
+    )
+  }
 </SectionHead>
 
 <p class="ftr__mailrow pad" data-reveal="text">
@@ -24,7 +42,7 @@ const { n = "07", level = 2 } = Astro.props;
 
 <div class="ftr__cols pad" data-reveal="text">
   <div>
-    <p class="label muted">Follow</p>
+    <p class="label muted">{t("Follow", "Соцсети")}</p>
     <ul>
       {
         social.map((s) => (
@@ -38,18 +56,18 @@ const { n = "07", level = 2 } = Astro.props;
     </ul>
   </div>
   <div>
-    <p class="label muted">Support</p>
+    <p class="label muted">{t("Support", "Поддержать")}</p>
     <ul>
       <li><a class="tlink" href={printClub.patreon} rel="noopener" target="_blank">Patreon</a></li>
       <li><a class="tlink" href={printClub.boosty} rel="noopener" target="_blank">Boosty</a></li>
-      <li><a class="tlink" href="/prints#print-club">Print Club</a></li>
+      <li><a class="tlink" href="/prints#print-club">{t("Print Club", "Принт-клуб")}</a></li>
     </ul>
   </div>
   <div>
-    <p class="label muted">Studio</p>
-    <p>{site.location}</p>
-    <p class="muted">Packed within 1–3 working days</p>
-    <p><a class="tlink" href="/shipping">Shipping and FAQ</a></p>
+    <p class="label muted">{t("Studio", "Мастерская")}</p>
+    <p>{t(site.location, site.locationRu)}</p>
+    <p class="muted">{t("Packed within 1–3 working days", "Упаковываю за 1–3 рабочих дня")}</p>
+    <p><a class="tlink" href="/shipping">{t("Shipping and FAQ", "Доставка и вопросы")}</a></p>
   </div>
 </div>
 

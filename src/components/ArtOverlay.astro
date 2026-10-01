@@ -1,5 +1,8 @@
 ---
 // Как в прошлой версии (src/v1/components/ArtOverlay.astro), только на белом фоне.
+import { langOf, tr } from "../i18n";
+
+const t = tr(langOf(Astro.currentLocale));
 ---
 
 <!-- Выезд картины снизу при наведении (только мышь, декоративный) -->
@@ -18,14 +21,18 @@
         <p class="viewer__meta muted" data-viewer-meta></p>
       </div>
       <p class="viewer__links">
-        <a class="tlink" href="/order" data-viewer-order hidden>Request this work</a>
+        <a class="tlink" href="/order" data-viewer-order hidden>{t("Request this work", "Заявка на работу")}</a>
         <a class="tlink" href="/" data-viewer-link hidden>
-          <span data-viewer-link-label>View the work</span>
+          <span data-viewer-link-label data-default={t("View the work", "Страница работы")}>
+            {t("View the work", "Страница работы")}
+          </span>
         </a>
       </p>
     </figcaption>
   </figure>
-  <button class="viewer__close label" type="button" data-viewer-close>Close <span aria-hidden="true">✕</span></button>
+  <button class="viewer__close label" type="button" data-viewer-close>
+    {t("Close", "Закрыть")} <span aria-hidden="true">✕</span>
+  </button>
 </div>
 
 <style>

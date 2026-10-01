@@ -1,38 +1,64 @@
 ---
-import { galleryOrder, mediumSize, orderHref, priceOrState, ratioOf, workHref } from "../../lib/works";
+import { langOf, tr } from "../../i18n";
+import { galleryOrder, mediumOf, mediumSize, orderHref, priceOrState, ratioOf, titleOf, workHref } from "../../lib/works";
 import SectionHead from "../SectionHead.astro";
 import Wall, { type WallItem } from "../Wall.astro";
 
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
 const all = galleryOrder();
 
 // Берём с запасом — на стене останутся три ряда, остальные скрываются после раскладки
 const items: WallItem[] = all.slice(0, 24).map((w) => ({
   src: w.images[0].src,
   ratio: ratioOf(w),
-  alt: `${w.title}, ${w.medium.toLowerCase()}`,
+  alt: `${titleOf(w, lang)}, ${mediumOf(w, lang).toLowerCase()}`,
   href: workHref(w),
-  title: w.title,
-  meta: mediumSize(w),
-  price: priceOrState(w),
+  title: titleOf(w, lang),
+  meta: mediumSize(w, lang),
+  price: priceOrState(w, lang),
   order: orderHref(w),
 }));
 ---
 
 <section class="section" id="works" aria-labelledby="works-title">
-  <SectionHead n="02" label="Originals" aside={`${all.length} available`} title="Available now" titleId="works-title">
-    <p>
-      Oil sketches on thick primed board and a few tempera paintings on canvas, all signed. Every piece is one of a
-      kind; most were painted outdoors, from life.
-    </p>
-    <p>
-        Ordering is a <a class="ulink" href="/order">request</a>, not a payment: I’ll email you to agree on
-        shipping and how to pay.
-      </p>
+  <SectionHead
+    n="02"
+    label={t("Originals", "Оригиналы")}
+    aside={t(`${all.length} available`, `${all.length} в продаже`)}
+    title={t("Available now", "Сейчас в продаже")}
+    titleId="works-title"
+  >
+    {
+      lang === "ru" ? (
+        <Fragment>
+          <p>
+            Этюды маслом на толстом грунтованном картоне и несколько работ темперой на холсте, все подписаны. Каждая
+            работа существует в одном экземпляре, большинство написаны на пленэре, с натуры.
+          </p>
+          <p>
+            Заказ — это <a class="ulink" href="/order">заявка</a>, а не оплата: я напишу вам на почту, и мы договоримся
+            о доставке и способе оплаты.
+          </p>
+        </Fragment>
+      ) : (
+        <Fragment>
+          <p>
+            Oil sketches on thick primed board and a few tempera paintings on canvas, all signed. Every piece is one of a
+            kind; most were painted outdoors, from life.
+          </p>
+          <p>
+            Ordering is a <a class="ulink" href="/order">request</a>, not a payment: I’ll email you to agree on shipping
+            and how to pay.
+          </p>
+        </Fragment>
+      )
+    }
   </SectionHead>
   <Wall items={items} height={210} rows={3} />
   <div class="more pad" data-reveal="text">
     <a class="more__btn" href="/works">
-      <span>All available works</span>
+      <span>{t("All available works", "Все работы в продаже")}</span>
       <span class="num muted">{all.length}</span>
       <span aria-hidden="true">→</span>
     </a>

@@ -5,13 +5,22 @@
 import LegalDoc from "../components/LegalDoc.astro";
 import Base from "../layouts/Base.astro";
 import { operator } from "../data/site";
+import { langOf, tr } from "../i18n";
+
+const t = tr(langOf(Astro.currentLocale));
 
 const host = new URL(Astro.site!).host;
 const url = `https://${host}`;
 const mail = operator.email;
 ---
 
-<Base title="Consent to personal data processing" description="The consent you give when sending a request on the Vityungr website.">
+<Base
+  title={t("Consent to personal data processing", "Согласие на обработку персональных данных")}
+  description={t(
+    "The consent you give when sending a request on the Vityungr website.",
+    "Согласие, которое вы даёте, отправляя заявку на сайте Vityungr.",
+  )}
+>
   <LegalDoc other={{ href: "/privacy", en: "Privacy policy", ru: "Политика обработки персональных данных" }}>
     <Fragment slot="en">
       <h1>Consent to personal data processing</h1>

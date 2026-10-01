@@ -1,6 +1,7 @@
 ---
 import { Image } from "astro:assets";
 import { printClub } from "../../data/site";
+import { langOf, tr } from "../../i18n";
 import { loadImage, prints } from "../../lib/works";
 import SectionHead from "../SectionHead.astro";
 
@@ -11,17 +12,47 @@ interface Props {
 const { n = "04" } = Astro.props;
 const club = prints.find((p) => p.kind === "print-club")!;
 const photo = await loadImage(club.images[0].src);
+const t = tr(langOf(Astro.currentLocale));
 const steps = [
-  { title: "I paint from life", text: "All month I work outdoors, on new pieces from real observation." },
-  { title: "I choose the best one", text: "At the end of the month one painting becomes the club print." },
-  { title: "It comes by post", text: "A 5×7 print, signed and limited, in your mailbox. Collect a whole year." },
+  {
+    title: t("I paint from life", "Пишу с натуры"),
+    text: t(
+      "All month I work outdoors, on new pieces from real observation.",
+      "Весь месяц я работаю на пленэре над новыми картинами с натуры.",
+    ),
+  },
+  {
+    title: t("I choose the best one", "Выбираю лучшую"),
+    text: t(
+      "At the end of the month one painting becomes the club print.",
+      "В конце месяца одна из картин становится принтом клуба.",
+    ),
+  },
+  {
+    title: t("It comes by post", "Принт приходит по почте"),
+    text: t(
+      "A 5×7 print, signed and limited, in your mailbox. Collect a whole year.",
+      "Подписанный принт 5×7 дюймов ограниченным тиражом — прямо в почтовый ящик. Соберите целый год.",
+    ),
+  },
 ];
 ---
 
 <section class="section club" id="print-club" aria-labelledby="club-title">
-  <SectionHead n={n} label="Print Club" aside="Monthly subscription" title="Vityungr Print Club" titleId="club-title">
+  <SectionHead
+    n={n}
+    label={t("Print Club", "Принт-клуб")}
+    aside={t("Monthly subscription", "Ежемесячная подписка")}
+    title={t("Vityungr Print Club", "Принт-клуб Vityungr")}
+    titleId="club-title"
+  >
     <p>
-      The easiest way to own my work. Every month members get a print of the best painting I made that month.
+      {
+        t(
+          "The easiest way to own my work. Every month members get a print of the best painting I made that month.",
+          "Самый простой способ получить мою работу. Каждый месяц участники клуба получают принт лучшей картины, написанной за этот месяц.",
+        )
+      }
     </p>
   </SectionHead>
 
@@ -29,7 +60,10 @@ const steps = [
     <figure class="club__photo" data-reveal>
       <Image
         src={photo}
-        alt="Print Club envelopes with signed prints, ready to be posted"
+        alt={t(
+          "Print Club envelopes with signed prints, ready to be posted",
+          "Конверты принт-клуба с подписанными принтами, готовые к отправке",
+        )}
         widths={[480, 800, 1200]}
         sizes="(max-width: 859px) 92vw, 44vw"
         format="webp"
@@ -54,16 +88,25 @@ const steps = [
       <ul class="club__links">
         <li>
           <a class="tlink" href={printClub.patreon} rel="noopener" target="_blank">
-            Join on Patreon<span class="sr-only"> (opens in a new tab)</span>
+            {t("Join on Patreon", "Вступить на Patreon")}
+            <span class="sr-only">{t(" (opens in a new tab)", " (откроется в новой вкладке)")}</span>
           </a>
         </li>
         <li>
           <a class="tlink" href={printClub.paypal} rel="noopener" target="_blank">
-            Join with PayPal<span class="sr-only"> (opens in a new tab)</span>
+            {t("Join with PayPal", "Вступить через PayPal")}
+            <span class="sr-only">{t(" (opens in a new tab)", " (откроется в новой вкладке)")}</span>
           </a>
         </li>
       </ul>
-      <p class="club__note muted">Patreon members also get process timelapses and notes on how each piece was painted.</p>
+      <p class="club__note muted">
+        {
+          t(
+            "Patreon members also get process timelapses and notes on how each piece was painted.",
+            "Участники на Patreon также получают таймлапсы процесса и заметки о том, как писалась каждая работа.",
+          )
+        }
+      </p>
     </div>
   </div>
 </section>

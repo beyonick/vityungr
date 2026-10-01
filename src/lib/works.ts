@@ -1,6 +1,8 @@
 import type { ImageMetadata } from "astro";
 import catalog from "../data/catalog.json";
-import { animationFrames, openSizes } from "../data/prints";
+import { animationFrames, animationFramesRu, openSizes } from "../data/prints";
+import { titlesRu } from "../data/titles-ru";
+import type { Lang } from "../i18n";
 
 export type WorkImage = { src: string; w: number; h: number; cutout: boolean };
 
@@ -68,18 +70,24 @@ export function availableWorks(): Work[] {
   return works.filter((w) => w.status === "available").sort((a, b) => rank(a) - rank(b));
 }
 
-export function formatSize(size: string): string {
-  return size.replace(/\s*x\s*/i, " × ");
+/** Название работы или принта на языке страницы (titles-ru.ts) */
+export const titleOf = (w: { title: string }, lang: Lang = "en"): string =>
+  lang === "ru" ? (titlesRu[w.title] ?? w.title) : w.title;
+
+/** «47 × 32 cm», по-русски «47 × 32 см» и десятичная запятая */
+export function formatSize(size: string, lang: Lang = "en"): string {
+  const s = size.replace(/\s*x\s*/i, " × ");
+  return lang === "ru" ? s.replace(/\bcm\b/, "см").replace(/(\d)\.(\d)/g, "$1,$2") : s;
 }
 
 export function formatPrice(eur: number | null): string {
   return eur == null ? "" : `€${eur.toLocaleString("en-US")}`;
 }
 
-/** Подпись для полноэкранного просмотра: техника · размер · цена или статус */
+
+/** Подпись для просмотра в прошлой версии (src/v1): техника · размер · цена или статус */
 export function artMeta(w: Work): string {
-  const state = w.status === "available" ? formatPrice(w.price_eur) : w.status === "sold" ? "Sold" : w.status === "reserved" ? "Reserved" : "";
-  return [w.medium, w.size && formatSize(w.size), state].filter(Boolean).join(" · ");
+  return [w.medium, w.size && formatSize(w.size), priceOrState(w)].filter(Boolean).join(" · ");
 }
 
 /** Папка работы — последняя часть адреса её страницы */
@@ -110,12 +118,24 @@ export const ratioOf = (w: { images: WorkImage[] }) => w.images[0].w / w.images[
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+// Техника по-русски — как в каталогах: основа, затем материал
+const mediumRu: Record<string, string> = {
+  "oil on board": "Картон, масло",
+  "oil on canvas": "Холст, масло",
+  "oil on paper": "Бумага, масло",
+  "tempera on canvas": "Холст, темпера",
+  "tempera on board": "Картон, темпера",
+  "gouache on paper": "Бумага, гуашь",
+  "watercolour on paper": "Бумага, акварель",
+};
+
 /** «Oil on board» (в каталоге встречается и со строчной) */
-export const mediumOf = (w: Work) => cap(w.medium);
+export const mediumOf = (w: Work, lang: Lang = "en") =>
+  lang === "ru" ? (mediumRu[w.medium.toLowerCase()] ?? cap(w.medium)) : cap(w.medium);
 
 /** «Oil on board, 47 × 32 cm» */
-export function mediumSize(w: Work): string {
-  return [mediumOf(w), w.size && formatSize(w.size)].filter(Boolean).join(", ");
+export function mediumSize(w: Work, lang: Lang = "en"): string {
+  return [mediumOf(w, lang), w.size && formatSize(w.size, lang)].filter(Boolean).join(", ");
 }
 
 /** Ширина и высота в см. Какое число — высота, решаем по пропорциям фото: в каталоге порядок не всегда один. */
@@ -128,8 +148,10 @@ export function sizeCm(w: Work): { w: number; h: number } | null {
 }
 
 /** Статус словами — для страницы работы */
-export function stateLabel(w: Work): string {
-  return { available: "Available", reserved: "Reserved", sold: "Sold", archive: "Not available" }[w.status];
+export function stateLabel(w: Work, lang: Lang = "en"): string {
+  return lang === "ru"
+    ? { available: "В продаже", reserved: "Забронирована", sold: "Продана", archive: "Не продаётся" }[w.status]
+    : { available: "Available", reserved: "Reserved", sold: "Sold", archive: "Not available" }[w.status];
 }
 
 /** Работы серии в порядке её страницы: в продаже (новые первыми), забронированные, проданные, остальные */
@@ -140,10 +162,9 @@ export function seriesOrder(slug: string): Work[] {
 }
 
 /** Цена, если работа продаётся, иначе статус. Скидки не показываем. */
-export function priceOrState(w: Work): string {
+export function priceOrState(w: Work, lang: Lang = "en"): string {
   if (w.status === "available") return formatPrice(w.price_eur);
-  if (w.status === "sold") return "Sold";
-  if (w.status === "reserved") return "Reserved";
+  if (w.status === "sold" || w.status === "reserved") return stateLabel(w, lang);
   return "";
 }
 
@@ -169,42 +190,64 @@ export const printId = (p: Print) => workId(p);
 export const availablePrints = () => prints.filter((p) => p.status === "available");
 
 /** Анимационные принты называются так же, как обычные, — отличаем припиской */
-export const printTitle = (p: Print) => (p.kind === "animation" ? `${p.title}, animation print` : p.title);
+export const printTitle = (p: Print, lang: Lang = "en") =>
+  p.kind === "animation"
+    ? `${titleOf(p, lang)}, ${lang === "ru" ? "анимационный принт" : "animation print"}`
+    : titleOf(p, lang);
 
-/** «A3, 200 gsm matte paper» из «Printed on 200 gsm matte A3 paper» */
-export function paperOf(p: Print): string {
+/** «A3, 200 gsm matte paper» из «Printed on 200 gsm matte A3 paper»; по-русски «A3, матовая бумага 200 г/м²» */
+export function paperOf(p: Print, lang: Lang = "en"): string {
   const m = p.paper.match(/Printed on (.+?) paper/i);
   if (!m) return p.paper;
   const size = m[1].match(/\b(A\d)\b/)?.[1];
   const stock = m[1].replace(/\s*\bA\d\b/, "").trim();
+  if (lang === "ru") {
+    const gsm = stock.match(/(\d+)\s*gsm/i)?.[1];
+    const finish = /semi-matte/i.test(stock) ? "полуматовая" : /matte/i.test(stock) ? "матовая" : "";
+    return [size, [finish, "бумага", gsm && `${gsm} г/м²`].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  }
   return [size, `${stock} paper`].filter(Boolean).join(", ");
 }
 
 /** «2 of 5 left», «Back in stock, 1 of 5 left», «Sold out» */
-export function printStock(p: Print): string {
-  if (p.status === "sold out") return "Sold out";
-  if (p.kind === "animation") return "One of a kind";
-  if (p.kind === "open") return "Open edition";
-  if (p.left == null) return "Limited batch of 5";
+export function printStock(p: Print, lang: Lang = "en"): string {
+  const ru = lang === "ru";
+  if (p.status === "sold out") return ru ? "Распродан" : "Sold out";
+  if (p.kind === "animation") return ru ? "Единственный экземпляр" : "One of a kind";
+  if (p.kind === "open") return ru ? "Открытый тираж" : "Open edition";
+  if (p.left == null) return ru ? "Ограниченный тираж — 5 штук" : "Limited batch of 5";
+  if (ru) return `${p.label === "RESTOCK" ? "Снова в наличии, осталось" : "Осталось"} ${p.left} из 5`;
   return `${p.label === "RESTOCK" ? "Back in stock, " : ""}${p.left} of 5 left`;
 }
 
-export type PrintOption = { label: string; price: string };
+export type PrintOption = { label: string; value: string; price: string };
 
-/** Что выбрать: размер у открытого тиража, набор кадров у некоторых анимационных */
-export function printOptions(p: Print): { name: string; list: PrintOption[] } | null {
+/** Что выбрать: размер у открытого тиража, набор кадров у некоторых анимационных.
+ *  value — английская подпись: её форма шлёт обработчику заявок, он сверяет варианты по-английски. */
+export function printOptions(p: Print, lang: Lang = "en"): { name: string; list: PrintOption[] } | null {
+  const ru = lang === "ru";
   if (p.kind === "open") {
-    return { name: "Size", list: openSizes.map((s) => ({ label: s.label, price: formatPrice(s.price) })) };
+    return {
+      name: ru ? "Размер" : "Size",
+      list: openSizes.map((s) => ({ label: ru ? s.labelRu : s.label, value: s.label, price: formatPrice(s.price) })),
+    };
   }
   const frames = p.kind === "animation" ? animationFrames[p.title] : undefined;
-  if (frames) return { name: "Frames", list: frames.map((f) => ({ label: f, price: formatPrice(p.price_eur) })) };
+  if (frames) {
+    const framesRu = animationFramesRu[p.title] ?? frames;
+    return {
+      name: ru ? "Кадры" : "Frames",
+      list: frames.map((f, i) => ({ label: ru ? framesRu[i] : f, value: f, price: formatPrice(p.price_eur) })),
+    };
+  }
   return null;
 }
 
 /** Цена словами: у открытого тиража — «from €30» */
-export function printPrice(p: Print): string {
-  if (p.status === "sold out") return "Sold out";
-  if (p.kind === "open") return `from ${formatPrice(Math.min(...openSizes.map((s) => s.price)))}`;
+export function printPrice(p: Print, lang: Lang = "en"): string {
+  if (p.status === "sold out") return lang === "ru" ? "Распродан" : "Sold out";
+  const from = lang === "ru" ? "от" : "from";
+  if (p.kind === "open") return `${from} ${formatPrice(Math.min(...openSizes.map((s) => s.price)))}`;
   return formatPrice(p.price_eur);
 }
 

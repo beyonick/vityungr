@@ -1,0 +1,113 @@
+---
+// Видео в рамке: заполняет родителя (высоту задаёт обёртка), поверх — слот для текста.
+// shade — затемнение сверху и снизу, чтобы белый текст читался на любом кадре.
+// Файл: public/video/about.mp4, кадр-заставка public/video/about.jpg (если есть).
+// Сначала видна заставка, видео начинает грузиться только после загрузки страницы — первый экран его не ждёт.
+// Играет, только пока его видно. При экономии трафика и медленной сети остаётся заставка,
+// без анимаций — заставка и кнопки, без автозапуска.
+import fs from "node:fs";
+import path from "node:path";
+
+interface Props {
+  label: string;
+  shade?: boolean;
+}
+
+const { label, shade = true } = Astro.props;
+const inPublic = (file: string) => fs.existsSync(path.join(process.cwd(), "public", file));
+const videoSrc = "/video/about.mp4";
+const posterSrc = "/video/about.jpg";
+const hasVideo = inPublic(videoSrc);
+const poster = inPublic(posterSrc) ? posterSrc : undefined;
+---
+
+<div class="vf">
+  {
+    hasVideo ? (
+      <video
+        class="vf__video"
+        src={videoSrc}
+        poster={poster}
+        muted
+        loop
+        playsinline
+        preload="none"
+        aria-label={label}
+        data-vf-video
+      />
+    ) : (
+      <div class="vf__video vf__video--ph" />
+    )
+  }
+  {
+    Astro.slots.has("default") && (
+      <div class:list={["vf__over", { "vf__over--shade": shade }]}>
+        <slot />
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .vf {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    background: #1d1d1d;
+  }
+
+  .vf__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .vf__video--ph {
+    background: linear-gradient(135deg, #2a2a2a, #111);
+  }
+
+  .vf__over {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: clamp(16px, 2vw, 28px);
+    color: #fff;
+  }
+
+  .vf__over--shade {
+    background:
+      linear-gradient(to bottom, rgb(0 0 0 / 0.35), transparent 22%),
+      linear-gradient(to top, rgb(0 0 0 / 0.55), transparent 55%);
+  }
+</style>
+
+<script>
+  type Connection = { saveData?: boolean; effectiveType?: string };
+  const videos = Array.from(document.querySelectorAll<HTMLVideoElement>("[data-vf-video]"));
+  const net = (navigator as Navigator & { connection?: Connection }).connection;
+  const lean = net?.saveData === true || /(^|-)2g$|^3g$/.test(net?.effectiveType ?? "");
+
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    videos.forEach((v) => (v.controls = true));
+  } else if (!lean && "IntersectionObserver" in window) {
+    const start = () => {
+      const io = new IntersectionObserver((entries) =>
+        entries.forEach(({ target, isIntersecting }) => {
+          const v = target as HTMLVideoElement;
+          if (isIntersecting) {
+            v.preload = "auto";
+            v.play().catch(() => {});
+          } else v.pause();
+        }),
+      );
+      videos.forEach((v) => io.observe(v));
+    };
+    // ждём, пока загрузятся текст и картинки первого экрана
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+  }
+</script>

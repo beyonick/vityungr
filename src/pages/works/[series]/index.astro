@@ -5,7 +5,8 @@ import SectionHead from "../../../components/SectionHead.astro";
 import SeriesNav from "../../../components/SeriesNav.astro";
 import Wall, { type WallItem } from "../../../components/Wall.astro";
 import Base from "../../../layouts/Base.astro";
-import { series, type Series } from "../../../data/series";
+import { series, seriesText, type Series } from "../../../data/series";
+import { langOf, plural, tr } from "../../../i18n";
 import {
   coverOf,
   loadImage,
@@ -15,6 +16,7 @@ import {
   priceOrState,
   ratioOf,
   seriesOrder,
+  titleOf,
   workHref,
   worksIn,
   type Work,
@@ -29,6 +31,10 @@ interface Props {
 }
 
 const { s } = Astro.props;
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
+const text = seriesText(s, lang);
+const works = (n: number) => t(n === 1 ? "work" : "works", plural(n, "работа", "работы", "работ"));
 const isNew = s.slug === "new";
 const list = seriesOrder(s.slug);
 const forSale = list.filter((w) => w.status === "available" || w.status === "reserved");
@@ -38,11 +44,11 @@ const cover = await loadImage(coverOf(s.slug, s.cover).images[0].src);
 const card = (w: Work): WallItem => ({
   src: w.images[0].src,
   ratio: ratioOf(w),
-  alt: `${w.title}, ${mediumOf(w).toLowerCase()}`,
+  alt: `${titleOf(w, lang)}, ${mediumOf(w, lang).toLowerCase()}`,
   href: workHref(w),
-  title: w.title,
-  meta: mediumSize(w),
-  price: priceOrState(w),
+  title: titleOf(w, lang),
+  meta: mediumSize(w, lang),
+  price: priceOrState(w, lang),
   order: orderHref(w),
 });
 
@@ -51,43 +57,57 @@ const others: WallItem[] = series
   .filter((x) => x.slug !== s.slug && x.slug !== "new")
   .map((x) => {
     const c = coverOf(x.slug, x.cover);
+    const { title, places } = seriesText(x, lang);
+    const coverTitle = titleOf(c, lang);
+    const n = worksIn(x.slug).length;
     return {
       src: c.images[0].src,
       ratio: ratioOf(c),
-      alt: `${c.title}, from the ${x.title} series`,
+      alt: t(`${coverTitle}, from the ${title} series`, `${coverTitle}, из серии «${title}»`),
       href: `/works/${x.slug}`,
-      title: x.title,
+      title,
       price: x.years,
-      meta: `${x.places} · ${worksIn(x.slug).length} works`,
-      viewTitle: c.title,
-      viewMeta: [`${x.title} series`, mediumSize(c), priceOrState(c)].filter(Boolean).join(" · "),
-      viewLinkLabel: `See the ${x.title} series`,
+      meta: `${places} · ${n} ${works(n)}`,
+      viewTitle: coverTitle,
+      viewMeta: [t(`${title} series`, `Серия «${title}»`), mediumSize(c, lang), priceOrState(c, lang)]
+        .filter(Boolean)
+        .join(" · "),
+      viewLinkLabel: t(`See the ${title} series`, `Смотреть серию «${title}»`),
     };
   });
 
 const blocks = [
-  { title: "Available now", items: forSale, height: 250 },
-  { title: "Archive", items: archive, height: 190 },
+  { title: t("Available now", "Сейчас в продаже"), items: forSale, height: 250 },
+  { title: t("Archive", "Архив"), items: archive, height: 190 },
 ].filter((b) => b.items.length);
+const total = `${list.length} ${works(list.length)}`;
 ---
 
 <Base
-  title={isNew ? s.title : `${s.title} series`}
-  description={`${s.intro} ${list.length} paintings by Vityungr${forSale.length ? `, ${forSale.length} available` : ""}.`}
+  title={isNew ? text.title : t(`${text.title} series`, `Серия «${text.title}»`)}
+  description={t(
+    `${text.intro} ${list.length} paintings by Vityungr${forSale.length ? `, ${forSale.length} available` : ""}.`,
+    `${text.intro} ${total} Vityungr${forSale.length ? `, в продаже — ${forSale.length}` : ""}.`,
+  )}
   image={cover.src}
 >
   <section class="ser" aria-labelledby="series-title">
     <SectionHead
       n="—"
-      label={isNew ? "Works" : "Series"}
-      aside={[s.places, s.years].filter(Boolean).join(" · ")}
-      title={s.title}
+      label={isNew ? t("Works", "Работы") : t("Series", "Серия")}
+      aside={[text.places, s.years].filter(Boolean).join(" · ")}
+      title={text.title}
       titleId="series-title"
       level={1}
     >
-      <p>{s.intro}</p>
+      <p>{text.intro}</p>
       <p>
-        {list.length} works{forSale.length ? `, ${forSale.length} of them available now` : ", none available right now"}.
+        {
+          t(
+            `${total}${forSale.length ? `, ${forSale.length} of them available now` : ", none available right now"}.`,
+            `${total}${forSale.length ? `, из них в продаже — ${forSale.length}` : ", сейчас ни одна не продаётся"}.`,
+          )
+        }
       </p>
     </SectionHead>
     <SeriesNav current={s.slug} />
@@ -111,12 +131,19 @@ const blocks = [
   <section class="section" aria-labelledby="others-title">
     <SectionHead
       n="—"
-      label="Series"
-      aside={`${others.length} places`}
-      title={isNew ? "Series" : "Other series"}
+      label={t("Series", "Серии")}
+      aside={t(`${others.length} places`, `${others.length} ${plural(others.length, "место", "места", "мест")}`)}
+      title={isNew ? t("Series", "Серии") : t("Other series", "Другие серии")}
       titleId="others-title"
     >
-      <p>Every series grows out of a place I’ve lived in or travelled to.</p>
+      <p>
+        {
+          t(
+            "Every series grows out of a place I’ve lived in or travelled to.",
+            "Каждая серия вырастает из места, где я жил или куда приезжал.",
+          )
+        }
+      </p>
     </SectionHead>
     <Wall items={others} height={230} />
   </section>

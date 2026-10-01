@@ -1,11 +1,16 @@
 export const site = {
   name: "Vityungr",
   fullName: "Viktor Grachev",
+  fullNameRu: "Виктор Грачёв",
   tagline: "Plein-air landscape painter",
+  taglineRu: "Пейзажи с натуры",
   location: "Budva, Montenegro",
+  locationRu: "Будва, Черногория",
   email: "vityungr.art@gmail.com",
   description:
     "Landscapes painted outdoors by Vityungr (Viktor Grachev), a plein-air painter based in Montenegro. Original oil sketches, tempera paintings, signed prints and a monthly print club.",
+  descriptionRu:
+    "Пейзажи, написанные на пленэре: Vityungr (Виктор Грачёв), художник из Черногории. Оригинальные этюды маслом, работы темперой, подписные принты и ежемесячный принт-клуб.",
 };
 
 // Оператор персональных данных для политики и согласия (ФИО полностью, как требует 152-ФЗ)
@@ -20,9 +25,9 @@ export const operator = {
 
 // Меню: принты и Print Club — на /prints, «обо мне» и контакты — на /contact
 export const nav = [
-  { label: "Works", href: "/works" },
-  { label: "Prints", href: "/prints" },
-  { label: "Contact", href: "/contact" },
+  { label: "Works", labelRu: "Работы", href: "/works" },
+  { label: "Prints", labelRu: "Принты", href: "/prints" },
+  { label: "Contact", labelRu: "Контакты", href: "/contact" },
 ];
 
 export const social = [

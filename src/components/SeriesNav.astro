@@ -1,6 +1,7 @@
 ---
 // Все серии с числом работ — над стеной на /works и на страницах серий
-import { series } from "../data/series";
+import { series, seriesText } from "../data/series";
+import { langOf, tr } from "../i18n";
 import { availableWorks, worksIn } from "../lib/works";
 import ChipNav from "./ChipNav.astro";
 
@@ -10,15 +11,17 @@ interface Props {
 }
 
 const { current } = Astro.props;
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
 const links = [
-  { href: "/works", label: "Available now", count: availableWorks().length, active: !current },
+  { href: "/works", label: t("Available now", "Сейчас в продаже"), count: availableWorks().length, active: !current },
   ...series.map((s) => ({
     href: `/works/${s.slug}`,
-    label: s.title,
+    label: seriesText(s, lang).title,
     count: worksIn(s.slug).length,
     active: s.slug === current,
   })),
 ];
 ---
 
-<ChipNav label="Series" links={links} />
+<ChipNav label={t("Series", "Серии")} links={links} />

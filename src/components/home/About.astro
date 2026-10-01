@@ -5,6 +5,8 @@
 import { Image } from "astro:assets";
 import windowPhoto from "../../assets/vitya/painting-by-window.jpg";
 import snow from "../../assets/vitya/plein-air-snow.jpg";
+import { aboutText } from "../../data/about";
+import { langOf } from "../../i18n";
 import Chars from "../Chars.astro";
 
 interface Props {
@@ -12,62 +14,51 @@ interface Props {
 }
 
 const { n = "06" } = Astro.props;
+const about = aboutText(langOf(Astro.currentLocale));
 ---
 
 <section class="section about" id="about" aria-labelledby="about-title" data-about>
   <div class="sec-head about__head">
     <div class="sec-head__meta label" data-reveal="text">
-      <span><span class="sec-head__n num">{n}</span>About</span>
-      <span class="muted">Moscow Academic Art College, 2021</span>
+      <span><span class="sec-head__n num">{n}</span>{about.label}</span>
+      <span class="muted">{about.college}</span>
     </div>
   </div>
 
   <div class="about__grid pad">
     <h2 id="about-title" class="about__title display">
-      <Chars class="about__line about__line--1" text="Hi, I’m Viktor." />
-      <span class="about__line about__line--2" data-about-line="1" data-reveal="text"
-        ><em>You can call me Vityungr.</em></span
-      >
+      <Chars class="about__line about__line--1" text={`${about.hi}.`} />
+      <span class="about__line about__line--2" data-about-line="1" data-reveal="text"><em>{about.callMe}.</em></span>
     </h2>
 
     <figure class="about__photo about__photo--snow" data-about-drift="-0.06" data-reveal>
       <Image
         src={snow}
-        alt="Viktor painting at an easel in a snowy forest, wearing a red hood"
+        alt={about.snowAlt}
         widths={[480, 800, 1200]}
         sizes="(max-width: 859px) 78vw, 30vw"
         format="webp"
         quality={80}
       />
-      <figcaption class="about__cap muted">Painting in the snow</figcaption>
+      <figcaption class="about__cap muted">{about.snowCap}</figcaption>
     </figure>
 
     <figure class="about__photo about__photo--window" data-about-drift="0.05" data-reveal>
       <Image
         src={windowPhoto}
-        alt="Viktor painting by an open window with mountains outside"
+        alt={about.windowAlt}
         widths={[400, 700, 1000]}
         sizes="(max-width: 859px) 62vw, 26vw"
         format="webp"
         quality={80}
       />
-      <figcaption class="about__cap muted">Painting by the window</figcaption>
+      <figcaption class="about__cap muted">{about.windowCap}</figcaption>
     </figure>
 
     <div class="about__text" data-reveal="text">
-      <p>
-        I was born in Russia and graduated from the Moscow Academic Art College in 2021. In 2022 I moved abroad, and since
-        then I’ve lived in several countries, each with its own nature and culture.
-      </p>
-      <p class="muted">
-        Most of my work is painted outdoors, in rain, heat and −18°C. Larger pieces I finish in the studio, in tempera,
-        and each of them takes a month or more.
-      </p>
-      <p class="muted">
-        Right now I’m based in Montenegro, where I paint, ship my work around the world and collaborate with galleries.
-      </p>
+      {about.story.map((p, i) => <p class:list={{ muted: i > 0 }}>{p}</p>)}
       <p class="about__more">
-        <a class="tlink" href="/contact">How to reach me</a>
+        <a class="tlink" href="/contact">{about.reach}</a>
       </p>
     </div>
   </div>

@@ -8,8 +8,9 @@ import OrderForm from "../../../components/OrderForm.astro";
 import SectionHead from "../../../components/SectionHead.astro";
 import Wall, { type WallItem } from "../../../components/Wall.astro";
 import Base from "../../../layouts/Base.astro";
-import { fieldNotes, seriesBySlug } from "../../../data/series";
+import { fieldNotes, seriesBySlug, seriesText } from "../../../data/series";
 import { site } from "../../../data/site";
+import { langOf, pathIn, plural, stripLang, tr } from "../../../i18n";
 import {
   formatPrice,
   formatSize,
@@ -23,6 +24,7 @@ import {
   sizeCm,
   slugOf,
   stateLabel,
+  titleOf,
   workHref,
   workId,
   works,
@@ -38,7 +40,11 @@ interface Props {
 }
 
 const { work: w } = Astro.props;
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
 const s = seriesBySlug(w.series);
+const st = seriesText(s, lang);
+const name = titleOf(w, lang);
 const isNew = s.slug === "new";
 const available = w.status === "available";
 const list = seriesOrder(w.series);
@@ -46,7 +52,7 @@ const index = list.indexOf(w);
 const prev = list.length > 1 ? list[(index - 1 + list.length) % list.length] : null;
 const next = list.length > 1 ? list[(index + 1) % list.length] : null;
 const note = fieldNotes.find((n) => n.work === workId(w));
-const viewMeta = [mediumSize(w), priceOrState(w)].filter(Boolean).join(" · ");
+const viewMeta = [mediumSize(w, lang), priceOrState(w, lang)].filter(Boolean).join(" · ");
 
 // Фото: srcset из тех же размеров, что у карточек (800, 1100) и просмотра (1600) — новые файлы не плодим
 const photos = await Promise.all(
@@ -80,10 +86,22 @@ const unit = size
   : "";
 
 const stateNote = {
-  available: "No payment on the site: I’ll email you to agree on shipping, currency and payment.",
-  reserved: "Someone has reserved this painting. If the sale falls through, it will be back here.",
-  sold: "This one has found its home. I paint places like this often, so ask me about something similar.",
-  archive: "This painting isn’t available. Ask me about something similar.",
+  available: t(
+    "No payment on the site: I’ll email you to agree on shipping, currency and payment.",
+    "Оплаты на сайте нет: я напишу вам на почту, и мы договоримся о доставке, валюте и способе оплаты.",
+  ),
+  reserved: t(
+    "Someone has reserved this painting. If the sale falls through, it will be back here.",
+    "Эту картину забронировали. Если продажа сорвётся, она вернётся сюда.",
+  ),
+  sold: t(
+    "This one has found its home. I paint places like this often, so ask me about something similar.",
+    "Эта картина уже нашла свой дом. Я часто пишу похожие места — спросите меня о чём-нибудь похожем.",
+  ),
+  archive: t(
+    "This painting isn’t available. Ask me about something similar.",
+    "Эта картина не продаётся. Спросите меня о чём-нибудь похожем.",
+  ),
 }[w.status];
 
 const others: WallItem[] = list
@@ -92,21 +110,21 @@ const others: WallItem[] = list
   .map((x) => ({
     src: x.images[0].src,
     ratio: ratioOf(x),
-    alt: `${x.title}, ${mediumOf(x).toLowerCase()}`,
+    alt: `${titleOf(x, lang)}, ${mediumOf(x, lang).toLowerCase()}`,
     href: workHref(x),
-    title: x.title,
-    meta: mediumSize(x),
-    price: priceOrState(x),
+    title: titleOf(x, lang),
+    meta: mediumSize(x, lang),
+    price: priceOrState(x, lang),
     order: orderHref(x),
   }));
 
 // тот же адрес, что в canonical (Base.astro)
-const url = new URL(Astro.url.pathname, Astro.site).href;
+const url = new URL(pathIn(lang, stripLang(Astro.originPathname ?? Astro.url.pathname)), Astro.site).href;
 const [medium, surface] = mediumOf(w).split(/ on /i);
 const ld = {
   "@context": "https://schema.org",
   "@type": "VisualArtwork",
-  name: w.title,
+  name,
   url,
   image: new URL(main.image.src, Astro.site).href,
   artform: "Painting",
@@ -130,10 +148,17 @@ const ld = {
     }),
 };
 
-const title = isNew ? w.title : `${w.title} · ${s.title}`;
-const description = `${w.title}: original ${mediumSize(w).toLowerCase()} by ${site.name} (${site.fullName})${
-  isNew ? "" : `, from the ${s.title} series`
-}. ${available ? formatPrice(w.price_eur) : stateLabel(w)}.`;
+const title = isNew ? name : `${name} · ${st.title}`;
+const state = available ? formatPrice(w.price_eur) : stateLabel(w, lang);
+const description = t(
+  `${name}: original ${mediumSize(w).toLowerCase()} by ${site.name} (${site.fullName})${
+    isNew ? "" : `, from the ${st.title} series`
+  }. ${state}.`,
+  `${name}: оригинал, ${mediumSize(w, lang).toLowerCase()}. Автор — ${site.name} (${site.fullNameRu})${
+    isNew ? "" : `, серия «${st.title}»`
+  }. ${state}.`,
+);
+const worksWord = (n: number) => t(n === 1 ? "work" : "works", plural(n, "работа", "работы", "работ"));
 ---
 
 <Base title={title} description={description} image={main.image.src}>
@@ -141,22 +166,27 @@ const description = `${w.title}: original ${mediumSize(w).toLowerCase()} by ${si
 
   <article class="wk" aria-labelledby="work-title">
     <div class="wk__bar label">
-      <nav class="wk__crumbs" aria-label="Breadcrumb">
-        <a href="/works">Works</a>
+      <nav class="wk__crumbs" aria-label={t("Breadcrumb", "Навигация")}>
+        <a href="/works">{t("Works", "Работы")}</a>
         <span aria-hidden="true">/</span>
-        <a href={`/works/${s.slug}`}>{s.title}</a>
+        <a href={`/works/${s.slug}`}>{st.title}</a>
       </nav>
       {
         prev && next && (
-          <nav class="wk__pager" aria-label={isNew ? "More new works" : `More from ${s.title}`}>
-            <a href={workHref(prev)} rel="prev" title={prev.title}>
-              <span aria-hidden="true">←</span> Prev<span class="sr-only">ious: {prev.title}</span>
+          <nav
+            class="wk__pager"
+            aria-label={isNew ? t("More new works", "Другие новые работы") : t(`More from ${st.title}`, `Ещё из серии «${st.title}»`)}
+          >
+            <a href={workHref(prev)} rel="prev" title={titleOf(prev, lang)}>
+              <span aria-hidden="true">←</span> {t("Prev", "Назад")}
+              <span class="sr-only">{t("ious", "")}: {titleOf(prev, lang)}</span>
             </a>
             <span class="num muted">
               {index + 1} / {list.length}
             </span>
-            <a href={workHref(next)} rel="next" title={next.title}>
-              Next<span class="sr-only">: {next.title}</span> <span aria-hidden="true">→</span>
+            <a href={workHref(next)} rel="next" title={titleOf(next, lang)}>
+              {t("Next", "Дальше")}
+              <span class="sr-only">: {titleOf(next, lang)}</span> <span aria-hidden="true">→</span>
             </a>
           </nav>
         )
@@ -175,7 +205,7 @@ const description = `${w.title}: original ${mediumSize(w).toLowerCase()} by ${si
                 sizes={sizes}
                 width={p.image.width}
                 height={p.image.height}
-                alt={k === 0 ? `${w.title}, ${mediumOf(w).toLowerCase()}` : `${w.title}, photo ${k + 1}`}
+                alt={k === 0 ? `${name}, ${mediumOf(w, lang).toLowerCase()}` : `${name}, ${t("photo", "фото")} ${k + 1}`}
                 loading={k === 0 ? "eager" : "lazy"}
                 fetchpriority={k === 0 ? "high" : undefined}
                 decoding="async"
@@ -183,7 +213,7 @@ const description = `${w.title}: original ${mediumSize(w).toLowerCase()} by ${si
                 data-photo={k}
                 data-art={p.full}
                 data-art-ratio={p.r.toFixed(4)}
-                data-art-title={w.title}
+                data-art-title={name}
                 data-art-meta={viewMeta}
                 data-art-still
               />
@@ -192,7 +222,7 @@ const description = `${w.title}: original ${mediumSize(w).toLowerCase()} by ${si
         </div>
         {
           photos.length > 1 && (
-            <ul class="wk__thumbs" aria-label="Photos">
+            <ul class="wk__thumbs" aria-label={t("Photos", "Фотографии")}>
               {photos.map((p, k) => (
                 <li>
                   <button
@@ -204,7 +234,7 @@ const description = `${w.title}: original ${mediumSize(w).toLowerCase()} by ${si
                   >
                     <img src={p.thumb} alt="" loading="lazy" decoding="async" />
                     <span class="sr-only">
-                      Photo {k + 1} of {photos.length}
+                      {t(`Photo ${k + 1} of ${photos.length}`, `Фото ${k + 1} из ${photos.length}`)}
                     </span>
                   </button>
                 </li>
@@ -216,64 +246,64 @@ const description = `${w.title}: original ${mediumSize(w).toLowerCase()} by ${si
 
       <div class="wk__info">
         <p class="wk__state label" data-reveal="text">
-          {available && w.label === "NEW" && <span class="wk__new">New</span>}
-          <span class:list={{ muted: !available }}>{stateLabel(w)}</span>
+          {available && w.label === "NEW" && <span class="wk__new">{t("New", "Новая")}</span>}
+          <span class:list={{ muted: !available }}>{stateLabel(w, lang)}</span>
         </p>
-        <h1 id="work-title" class="wk__title serif" data-reveal="text">{w.title}</h1>
+        <h1 id="work-title" class="wk__title serif" data-reveal="text">{name}</h1>
         {available && <p class="wk__price num" data-reveal="text">{formatPrice(w.price_eur)}</p>}
 
         <div class="wk__act" data-reveal="text">
           {
             available ? (
               <a class="wk__cta" href="#request">
-                <span>Request this painting</span>
+                <span>{t("Request this painting", "Оставить заявку")}</span>
                 <span aria-hidden="true">→</span>
               </a>
             ) : (
-              <a class="wk__cta wk__cta--ghost" href={`/order?work=other&like=${encodeURIComponent(w.title)}`}>
-                <span>Ask about a similar painting</span>
+              <a class="wk__cta wk__cta--ghost" href={`/order?work=other&like=${encodeURIComponent(name)}`}>
+                <span>{t("Ask about a similar painting", "Спросить о похожей картине")}</span>
                 <span aria-hidden="true">→</span>
               </a>
             )
           }
           <p class="wk__small muted">
             {stateNote}{" "}
-            {available && <a class="ulink" href="/shipping">Shipping and FAQ</a>}
+            {available && <a class="ulink" href="/shipping">{t("Shipping and FAQ", "Доставка и вопросы")}</a>}
           </p>
         </div>
 
         <dl class="wk__facts" data-reveal="text">
           <div>
-            <dt class="label muted">Medium</dt>
-            <dd>{mediumOf(w)}</dd>
+            <dt class="label muted">{t("Medium", "Техника")}</dt>
+            <dd>{mediumOf(w, lang)}</dd>
           </div>
           {
             w.size && (
               <div>
-                <dt class="label muted">Size</dt>
-                <dd class="num">{formatSize(w.size)}</dd>
+                <dt class="label muted">{t("Size", "Размер")}</dt>
+                <dd class="num">{formatSize(w.size, lang)}</dd>
               </div>
             )
           }
           {
             w.year && (
               <div>
-                <dt class="label muted">Year</dt>
+                <dt class="label muted">{t("Year", "Год")}</dt>
                 <dd class="num">{w.year}</dd>
               </div>
             )
           }
           <div>
-            <dt class="label muted">{isNew ? "In" : "Series"}</dt>
+            <dt class="label muted">{isNew ? t("In", "Раздел") : t("Series", "Серия")}</dt>
             <dd>
-              <a class="ulink" href={`/works/${s.slug}`}>{s.title}</a>
+              <a class="ulink" href={`/works/${s.slug}`}>{st.title}</a>
             </dd>
           </div>
           {
             w.exhibition_work && (
               <div>
-                <dt class="label muted">Exhibited</dt>
-                <dd>Shown at an exhibition</dd>
+                <dt class="label muted">{t("Exhibited", "Выставка")}</dt>
+                <dd>{t("Shown at an exhibition", "Была на выставке")}</dd>
               </div>
             )
           }
@@ -291,7 +321,7 @@ const description = `${w.title}: original ${mediumSize(w).toLowerCase()} by ${si
                 </span>
               </div>
               <figcaption class="muted">
-                To scale, next to an A4 sheet (21 × 29.7 cm)
+                {t("To scale, next to an A4 sheet (21 × 29.7 cm)", "В масштабе, рядом с листом A4 (21 × 29,7 см)")}
               </figcaption>
             </figure>
           )
@@ -300,8 +330,8 @@ const description = `${w.title}: original ${mediumSize(w).toLowerCase()} by ${si
         {
           note && (
             <blockquote class="wk__note" data-reveal="text">
-              <p class="serif">{note.text}</p>
-              <footer class="label muted">From my Instagram</footer>
+              <p class="serif">{t(note.text, note.textRu)}</p>
+              <footer class="label muted">{t("From my Instagram", "Из моего Instagram")}</footer>
             </blockquote>
           )
         }
@@ -314,14 +344,18 @@ const description = `${w.title}: original ${mediumSize(w).toLowerCase()} by ${si
       <section class="section" id="request" aria-labelledby="request-title">
         <SectionHead
           n="—"
-          label="Request"
-          aside="No payment on the site"
-          title="Request this painting"
+          label={t("Request", "Заявка")}
+          aside={t("No payment on the site", "Без оплаты на сайте")}
+          title={t("Request this painting", "Заявка на эту картину")}
           titleId="request-title"
         >
           <p>
-            Leave your contacts and I’ll write back by email within a couple of days to agree on currency, payment and
-            delivery.
+            {
+              t(
+                "Leave your contacts and I’ll write back by email within a couple of days to agree on currency, payment and delivery.",
+                "Оставьте контакты, и в течение пары дней я напишу вам на почту, чтобы договориться о валюте, оплате и доставке.",
+              )
+            }
           </p>
         </SectionHead>
         <OrderForm work={w} />
@@ -334,17 +368,21 @@ const description = `${w.title}: original ${mediumSize(w).toLowerCase()} by ${si
       <section class="section" aria-labelledby="more-title">
         <SectionHead
           n="—"
-          label={isNew ? "New works" : "Series"}
-          aside={`${list.length} works`}
-          title={isNew ? "More new works" : `More from ${s.title}`}
+          label={isNew ? t("New works", "Новые работы") : t("Series", "Серия")}
+          aside={`${list.length} ${worksWord(list.length)}`}
+          title={isNew ? t("More new works", "Ещё новые работы") : t(`More from ${st.title}`, `Ещё из серии «${st.title}»`)}
           titleId="more-title"
         >
-          <p>{s.intro}</p>
+          <p>{st.intro}</p>
         </SectionHead>
         <Wall items={others} height={210} rows={2} />
         <div class="sec-foot" data-reveal="text">
           <a class="tlink" href={`/works/${s.slug}`}>
-            {isNew ? `All ${list.length} new works` : `All ${list.length} works from ${s.title}`}
+            {
+              isNew
+                ? t(`All ${list.length} new works`, `Все новые работы · ${list.length}`)
+                : t(`All ${list.length} works from ${st.title}`, `Все работы серии «${st.title}» · ${list.length}`)
+            }
           </a>
         </div>
       </section>

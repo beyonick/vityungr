@@ -1,43 +1,59 @@
 ---
 import { Image } from "astro:assets";
 import { animationPost } from "../../data/site";
-import { loadImage, prints } from "../../lib/works";
+import { langOf, tr } from "../../i18n";
+import { loadImage, prints, titleOf } from "../../lib/works";
 import SectionHead from "../SectionHead.astro";
+
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
 
 // Два соседних кадра анимации «Swallow Island» сменяют друг друга, как во флипбуке
 const swallow = prints.find((p) => p.kind === "animation" && p.title === "Swallow Island")!;
 const frames = await Promise.all([swallow.images[2], swallow.images[3]].map((f) => loadImage(f.src)));
 const price = prints.find((p) => p.kind === "animation")?.price_eur;
-const titles = [...new Set(prints.filter((p) => p.kind === "animation").map((p) => p.title))];
+const titles = [...new Set(prints.filter((p) => p.kind === "animation").map((p) => titleOf(p, lang)))];
+const swallowTitle = titleOf(swallow, lang);
 ---
 
 <section class="section moving" id="prints" aria-labelledby="moving-title">
   <SectionHead
     n="03"
-    label="Animated paintings"
-    aside={`Animation prints · €${price}`}
-    title="A month of work for thirty seconds"
+    label={t("Animated paintings", "Анимированные картины")}
+    aside={`${t("Animation prints", "Анимационные принты")} · €${price}`}
+    title={t("A month of work for thirty seconds", "Месяц работы ради тридцати секунд")}
     titleId="moving-title"
   >
     <p>
-      I’ve started bringing my paintings to life, frame by frame. The last one took over a month and ended up thirty
-      seconds long. I honestly fell in love with the process.
+      {
+        t(
+          "I’ve started bringing my paintings to life, frame by frame. The last one took over a month and ended up thirty seconds long. I honestly fell in love with the process.",
+          "Я начал оживлять свои картины кадр за кадром. Последняя заняла больше месяца, а в итоге длится тридцать секунд. Честно говоря, я влюбился в этот процесс.",
+        )
+      }
     </p>
   </SectionHead>
 
   <div class="moving__body pad">
     <div class="moving__text" data-reveal="text">
-      <h3 class="moving__heading display">One frame for every collector</h3>
+      <h3 class="moving__heading display">{t("One frame for every collector", "Каждому коллекционеру — свой кадр")}</h3>
       <p class="muted">
-        I break each animation down into single frames. Every animation print is one of them, so the moving parts sit in
-        a different place for every collector.
+        {
+          t(
+            "I break each animation down into single frames. Every animation print is one of them, so the moving parts sit in a different place for every collector.",
+            "Я разбиваю каждую анимацию на отдельные кадры. Каждый анимационный принт — один из них, поэтому у каждого коллекционера движущиеся детали застыли на своём месте.",
+          )
+        }
       </p>
-      <p class="muted">Now available: {titles.join(", ")}.</p>
+      <p class="muted">{t("Now available", "Сейчас в продаже")}: {titles.join(", ")}.</p>
       <ul class="moving__links">
-        <li><a class="tlink" href="/prints#animation">Animation prints · €{price}</a></li>
+        <li>
+          <a class="tlink" href="/prints#animation">{t("Animation prints", "Анимационные принты")} · €{price}</a>
+        </li>
         <li>
           <a class="tlink" href={animationPost} rel="noopener" target="_blank">
-            Watch it on Instagram<span class="sr-only"> (opens in a new tab)</span>
+            {t("Watch it on Instagram", "Смотреть в Instagram")}
+            <span class="sr-only">{t(" (opens in a new tab)", " (откроется в новой вкладке)")}</span>
           </a>
         </li>
       </ul>
@@ -49,7 +65,14 @@ const titles = [...new Set(prints.filter((p) => p.kind === "animation").map((p) 
             <Image
               class="moving__frame"
               src={f}
-              alt={i === 0 ? "A frame from the Swallow Island animation: a rocky island in the sea with swallows" : ""}
+              alt={
+                i === 0
+                  ? t(
+                      "A frame from the Swallow Island animation: a rocky island in the sea with swallows",
+                      `Кадр из анимации «${swallowTitle}»: скалистый остров в море и ласточки`,
+                    )
+                  : ""
+              }
               aria-hidden={i > 0 ? "true" : undefined}
               data-frame={i}
               widths={[640, 960, 1280, 1600].filter((w) => w <= f.width)}
@@ -61,9 +84,19 @@ const titles = [...new Set(prints.filter((p) => p.kind === "animation").map((p) 
         }
       </div>
       <figcaption class="moving__cap">
-        <span class="serif moving__name">Swallow Island</span>
-        <span class="muted">two frames out of thirty seconds</span>
-        <button class="moving__toggle label" type="button" aria-pressed="false" data-flipbook-toggle hidden>Pause</button>
+        <span class="serif moving__name">{swallowTitle}</span>
+        <span class="muted">{t("two frames out of thirty seconds", "два кадра из тридцати секунд")}</span>
+        <button
+          class="moving__toggle label"
+          type="button"
+          aria-pressed="false"
+          data-flipbook-toggle
+          data-play={t("Play", "Пуск")}
+          data-pause={t("Pause", "Пауза")}
+          hidden
+        >
+          {t("Pause", "Пауза")}
+        </button>
       </figcaption>
     </figure>
   </div>
@@ -190,7 +223,7 @@ const titles = [...new Set(prints.filter((p) => p.kind === "animation").map((p) 
     toggle.addEventListener("click", () => {
       paused = !paused;
       toggle.setAttribute("aria-pressed", String(paused));
-      toggle.textContent = paused ? "Play" : "Pause";
+      toggle.textContent = (paused ? toggle.dataset.play : toggle.dataset.pause) ?? "";
       run();
     });
 

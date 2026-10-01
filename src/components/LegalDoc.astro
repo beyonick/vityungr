@@ -1,8 +1,9 @@
 ---
 // Юридический документ на двух языках: английский (язык сайта) и русский (по 152-ФЗ, он главный).
 // Слоты en и ru. С JS видна одна версия, переключатель вверху; /privacy#ru открывает русскую.
-// Без JS показываются обе подряд.
+// В русской версии сайта (/ru/privacy) сразу открыт русский текст, #en — английский. Без JS видны обе подряд.
 import { operator } from "../data/site";
+import { langOf, tr } from "../i18n";
 
 interface Props {
   /** Второй документ — ссылка в боковой колонке */
@@ -10,17 +11,19 @@ interface Props {
 }
 
 const { other } = Astro.props;
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
 const date = new Date(operator.effective);
 const dateEn = date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 const dateRu = date.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
 ---
 
-<article class="legal" data-legal>
+<article class="legal" data-legal data-default={lang}>
   <div class="legal__meta label">
-    <span><span class="legal__n num">—</span>Legal</span>
-    <div class="legal__langs" role="group" aria-label="Language" hidden data-langs>
-      <button type="button" class="label" lang="en" aria-pressed="true" data-lang-btn="en">English</button>
-      <button type="button" class="label" lang="ru" aria-pressed="false" data-lang-btn="ru">Русский</button>
+    <span><span class="legal__n num">—</span>{t("Legal", "Документы")}</span>
+    <div class="legal__langs" role="group" aria-label={t("Language", "Язык")} hidden data-langs>
+      <button type="button" class="label" lang="en" aria-pressed={String(lang === "en")} data-lang-btn="en">English</button>
+      <button type="button" class="label" lang="ru" aria-pressed={String(lang === "ru")} data-lang-btn="ru">Русский</button>
     </div>
   </div>
 
@@ -282,11 +285,13 @@ const dateRu = date.toLocaleDateString("ru-RU", { day: "numeric", month: "long",
     const show = (lang: string, updateUrl: boolean) => {
       docs.forEach((d) => (d.hidden = d.dataset.lang !== lang));
       buttons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.langBtn === lang)));
-      if (updateUrl) history.replaceState(null, "", lang === "ru" ? "#ru" : location.pathname + location.search);
+      if (updateUrl) history.replaceState(null, "", lang === fallback ? location.pathname + location.search : `#${lang}`);
     };
     root.querySelector<HTMLElement>("[data-langs]")!.hidden = false;
     buttons.forEach((b) => b.addEventListener("click", () => show(b.dataset.langBtn!, true)));
-    const fromUrl = () => show(location.hash === "#ru" ? "ru" : "en", false);
+    // язык по умолчанию — язык версии сайта; #ru и #en выбирают явно
+    const fallback = root.dataset.default === "ru" ? "ru" : "en";
+    const fromUrl = () => show(location.hash === "#ru" ? "ru" : location.hash === "#en" ? "en" : fallback, false);
     window.addEventListener("hashchange", fromUrl);
     fromUrl();
   }

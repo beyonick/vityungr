@@ -8,6 +8,7 @@ import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import ArtOverlay from "../components/ArtOverlay.astro";
 import { site } from "../data/site";
+import { langOf, pathIn, stripLang, tr } from "../i18n";
 
 interface Props {
   title?: string;
@@ -18,24 +19,29 @@ interface Props {
   noindex?: boolean;
   /** Картинка для превью ссылки в мессенджерах и соцсетях (путь или адрес) */
   image?: string;
-  /** Подвал без блока контактов — для /contact, где он стоит первым */
-  compactFooter?: boolean;
 }
 
-const { title, description = site.description, home = false, noindex = false, image, compactFooter = false } = Astro.props;
-const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline}`;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
+const { title, description = t(site.description, site.descriptionRu), home = false, noindex = false, image } = Astro.props;
+const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${t(site.tagline, site.taglineRu)}`;
+// адрес страницы без языка: по нему строим ссылки на обе версии (в dev русская страница — подмена английской)
+const bare = stripLang(Astro.originPathname ?? Astro.url.pathname);
+const canonical = new URL(pathIn(lang, bare), Astro.site);
+const alternates = (["en", "ru"] as const).map((l) => ({ lang: l, href: new URL(pathIn(l, bare), Astro.site) }));
 const ogImage = image ? new URL(image, Astro.site) : null;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    {alternates.map((a) => <link rel="alternate" hreflang={a.lang} href={a.href} />)}
+    <link rel="alternate" hreflang="x-default" href={alternates[0].href} />
     {noindex && <meta name="robots" content="noindex" />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="theme-color" content="#ffffff" />
@@ -43,6 +49,7 @@ const ogImage = image ? new URL(image, Astro.site) : null;
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={t("en_US", "ru_RU")} />
     {ogImage && <meta property="og:image" content={ogImage} />}
     {ogImage && <meta name="twitter:card" content="summary_large_image" />}
     <slot name="head" />
@@ -59,12 +66,12 @@ const ogImage = image ? new URL(image, Astro.site) : null;
     </script>
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#main">{t("Skip to content", "К содержанию")}</a>
     <Header home={home} />
     <main id="main">
       <slot />
     </main>
-    <Footer compact={compactFooter} />
+    <Footer />
     <ArtOverlay />
     <script>
       import "../scripts/motion";

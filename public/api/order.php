@@ -31,7 +31,8 @@ function respond(bool $ok, string $error = '', array $fields = []): void
 {
     global $wantsJson;
     if (!$wantsJson) {
-        $to = $ok ? '/order/sent/' : '/order/?error=' . rawurlencode($error);
+        // заявка с русской версии сайта — обратно на русские страницы
+        $to = (($_POST['lang'] ?? '') === 'ru' ? '/ru' : '') . ($ok ? '/order/sent/' : '/order/?error=' . rawurlencode($error));
         if (!$ok && !empty($_POST['work']) && is_string($_POST['work'])) {
             $to .= '&work=' . rawurlencode($_POST['work']);
         }
@@ -249,6 +250,8 @@ foreach ([[$dir . '/*.json', KEEP_DAYS * 86400], [$dir . '/.rate-*', RATE_WINDOW
 
 $lines = [
     ['Work', $workLine],
+    // с русской версии сайта — отвечать по-русски
+    ['Language', ($_POST['lang'] ?? '') === 'ru' ? 'Russian' : ''],
     ['Name', $in['name']],
     ['Email', $in['email']],
     ['Country', $in['country']],

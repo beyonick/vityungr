@@ -11,6 +11,7 @@
 // На странице работы (work={…}) картина уже выбрана: вместо миниатюр — она сама и ссылка на /order.
 import { getImage } from "astro:assets";
 import { operator, site } from "../data/site";
+import { langOf, tr } from "../i18n";
 import {
   availablePrints,
   galleryOrder,
@@ -25,6 +26,7 @@ import {
   printStock,
   printTitle,
   ratioOf,
+  titleOf,
   type Print,
   type Work,
   type WorkImage,
@@ -43,6 +45,8 @@ type Item = {
 };
 
 const { work } = Astro.props;
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
 // пропорции берём из каталога, картинку — для миниатюры (360) и крупного вида (800)
 const withImages = async (entry: { images: WorkImage[] }, item: Item) => {
   const [first] = entry.images;
@@ -53,38 +57,62 @@ const withImages = async (entry: { images: WorkImage[] }, item: Item) => {
   return { ...item, r: ratioOf(entry), thumb: thumb.src, large: large.src };
 };
 const fromWork = (w: Work) =>
-  withImages(w, { id: orderId(w), title: w.title, meta: mediumSize(w), price: priceOrState(w), options: null });
+  withImages(w, {
+    id: orderId(w),
+    title: titleOf(w, lang),
+    meta: mediumSize(w, lang),
+    price: priceOrState(w, lang),
+    options: null,
+  });
 const fromPrint = (p: Print) =>
   withImages(p, {
     id: printId(p),
-    title: printTitle(p),
-    meta: [paperOf(p), printStock(p)].join(" · "),
-    price: printPrice(p),
-    options: printOptions(p),
+    title: printTitle(p, lang),
+    meta: [paperOf(p, lang), printStock(p, lang)].join(" · "),
+    price: printPrice(p, lang),
+    options: printOptions(p, lang),
   });
 
 const fixed = work ? await fromWork(work) : null;
 const groups = work
   ? []
   : [
-      { label: "Original paintings", items: await Promise.all(galleryOrder().map(fromWork)) },
-      { label: "Prints", items: await Promise.all(availablePrints().map(fromPrint)) },
+      { label: t("Original paintings", "Оригиналы"), items: await Promise.all(galleryOrder().map(fromWork)) },
+      { label: t("Prints", "Принты"), items: await Promise.all(availablePrints().map(fromPrint)) },
     ];
 
-// Страны — по-английски, как их называет браузер; код нужен для подсказки про США и Канаду
+// Страны — на языке страницы, как их называет браузер; код нужен для подсказки про США и Канаду
 const codes =
   "AD AE AF AG AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MO MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PR PS PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS XK YE ZA ZM ZW";
-const regionName = new Intl.DisplayNames(["en"], { type: "region" });
+const regionName = new Intl.DisplayNames([lang], { type: "region" });
 const countries = codes
   .split(" ")
   .map((code) => ({ code, name: regionName.of(code) ?? code }))
-  .sort((a, b) => a.name.localeCompare(b.name, "en"));
+  .sort((a, b) => a.name.localeCompare(b.name, lang));
+
+// Сообщения, которые форма показывает из скрипта; {email}, {title} подставляет скрипт
+const strings = {
+  invalid: t("Please check the highlighted fields.", "Проверьте отмеченные поля."),
+  rate: t(
+    "Too many requests from your connection. Try again in an hour, or write to me at {email}.",
+    "Слишком много заявок с вашего подключения. Попробуйте через час или напишите мне на {email}.",
+  ),
+  default: t(
+    "Something went wrong on my side and the request didn’t reach me. Please write to me at {email} — sorry about that.",
+    "Что-то пошло не так на моей стороне, и заявка до меня не дошла. Пожалуйста, напишите мне на {email} — простите за неудобство.",
+  ),
+  send: t("Send request", "Отправить заявку"),
+  sending: t("Sending…", "Отправляю…"),
+  like: t("I like “{title}”. Do you have something similar?", "Мне нравится «{title}». Есть что-нибудь похожее?"),
+  doneWork: t(" for “{title}”", " на «{title}»"),
+};
 ---
 
-<form class="of" action="/api/order.php" method="post" novalidate data-order>
+<form class="of" action="/api/order.php" method="post" novalidate data-order data-strings={JSON.stringify(strings)}>
+  <input type="hidden" name="lang" value={lang} />
   <!-- 01 Картина -->
   <fieldset class="of__row" aria-describedby={fixed ? undefined : "work-hint"} data-reveal="text">
-    <legend class="of__legend label"><span class="of__n num">01</span>{fixed ? "Painting" : "Artwork"}</legend>
+    <legend class="of__legend label"><span class="of__n num">01</span>{fixed ? t("Painting", "Картина") : t("Artwork", "Что заказать")}</legend>
     {
       fixed ? (
         <div class="of__body">
@@ -97,7 +125,7 @@ const countries = codes
               <p class="of__title serif">{fixed.title}</p>
               <p class="muted">{fixed.meta}</p>
               <p class="of__price num">{fixed.price}</p>
-              <a class="of__change tlink" href="/order">Choose another painting</a>
+              <a class="of__change tlink" href="/order">{t("Choose another painting", "Выбрать другую картину")}</a>
             </figcaption>
           </figure>
         </div>
@@ -111,21 +139,33 @@ const countries = codes
                 <p class="muted" data-chosen-meta></p>
                 <p class="of__price num" data-chosen-price></p>
                 <div class="of__option" hidden data-option-wrap>
-                  <label class="of__label label" for="of-option" data-option-name>Size</label>
+                  <label class="of__label label" for="of-option" data-option-name>{t("Size", "Размер")}</label>
                   <select class="of__input of__select" id="of-option" name="option" disabled data-option></select>
-                  <p class="of__error" hidden data-error="option">Choose one of the options.</p>
+                  <p class="of__error" hidden data-error="option">{t("Choose one of the options.", "Выберите один из вариантов.")}</p>
                 </div>
-                <button class="of__change tlink" type="button" data-change>Choose another painting</button>
+                <button class="of__change tlink" type="button" data-change>
+                  {t("Choose another painting", "Выбрать другую картину")}
+                </button>
               </figcaption>
             </figure>
           </div>
 
           <div class="of__pick" data-pick>
             <p class="of__hint muted" id="work-hint" data-pick-hint>
-              Choose a painting or a print. Want several? Pick one and list the others in the message.
+              {
+                t(
+                  "Choose a painting or a print. Want several? Pick one and list the others in the message.",
+                  "Выберите картину или принт. Хотите несколько? Отметьте одну, а остальные перечислите в сообщении.",
+                )
+              }
             </p>
             <p class="of__warn" hidden data-gone>
-              That one has just sold out or been reserved. Choose another one, or write to me about something similar.
+              {
+                t(
+                  "That one has just sold out or been reserved. Choose another one, or write to me about something similar.",
+                  "Эту работу только что купили или забронировали. Выберите другую или напишите мне о чём-нибудь похожем.",
+                )
+              }
             </p>
             {
               groups.map((g, gi) => (
@@ -155,8 +195,8 @@ const countries = codes
                     ))}
                     {gi === groups.length - 1 && (
                       <label class="of__thumb of__thumb--other">
-                        <input class="sr-only" type="radio" name="work" value="other" required data-title="Something else" />
-                        <span class="of__other-text">Something else</span>
+                        <input class="sr-only" type="radio" name="work" value="other" required data-title={t("Something else", "Другое")} />
+                        <span class="of__other-text">{t("Something else", "Другое")}</span>
                       </label>
                     )}
                   </div>
@@ -165,7 +205,9 @@ const countries = codes
             }
             <p class="of__peek" aria-hidden="true" data-peek-line>&nbsp;</p>
           </div>
-          <p class="of__error" id="err-work" hidden data-error="work">Choose a painting or a print, or “Something else”.</p>
+          <p class="of__error" id="err-work" hidden data-error="work">
+            {t("Choose a painting or a print, or “Something else”.", "Выберите картину или принт либо «Другое».")}
+          </p>
         </div>
       )
     }
@@ -173,62 +215,107 @@ const countries = codes
 
   <!-- 02 Контакты -->
   <fieldset class="of__row" data-reveal="text">
-    <legend class="of__legend label"><span class="of__n num">02</span>About you</legend>
+    <legend class="of__legend label"><span class="of__n num">02</span>{t("About you", "О вас")}</legend>
     <div class="of__body of__fields">
       <div class="of__field">
-        <label class="of__label label" for="of-name">Name</label>
+        <label class="of__label label" for="of-name">{t("Name", "Имя")}</label>
         <input class="of__input" id="of-name" name="name" type="text" autocomplete="name" maxlength="100" required aria-describedby="err-name" />
-        <p class="of__error" id="err-name" hidden data-error="name">Tell me how to address you.</p>
+        <p class="of__error" id="err-name" hidden data-error="name">{t("Tell me how to address you.", "Подскажите, как к вам обращаться.")}</p>
       </div>
 
       <div class="of__field">
-        <label class="of__label label" for="of-email">Email</label>
+        <label class="of__label label" for="of-email">{t("Email", "Почта")}</label>
         <input class="of__input" id="of-email" name="email" type="email" autocomplete="email" inputmode="email" maxlength="200" required aria-describedby="of-email-hint err-email" />
-        <p class="of__note muted" id="of-email-hint">I’ll reply here.</p>
-        <p class="of__error" id="err-email" hidden data-error="email">This doesn’t look like an email address.</p>
+        <p class="of__note muted" id="of-email-hint">{t("I’ll reply here.", "Отвечу сюда.")}</p>
+        <p class="of__error" id="err-email" hidden data-error="email">
+          {t("This doesn’t look like an email address.", "Похоже, это не адрес почты.")}
+        </p>
       </div>
 
       <div class="of__field">
-        <label class="of__label label" for="of-country">Ship to</label>
+        <label class="of__label label" for="of-country">{t("Ship to", "Куда отправить")}</label>
         <select class="of__input of__select" id="of-country" name="country" autocomplete="country-name" required aria-describedby="of-country-hint err-country" data-country>
-          <option value="">Country</option>
+          <option value="">{t("Country", "Страна")}</option>
           {countries.map((c) => <option value={c.name} data-code={c.code}>{c.name}</option>)}
         </select>
         <p class="of__note muted" id="of-country-hint" data-country-hint>
-          I ship worldwide and pack every order by hand within 1–3 working days.{" "}
-          <a class="ulink" href="/shipping" target="_blank">Shipping and FAQ</a>
+          {
+            t(
+              "I ship worldwide and pack every order by hand within 1–3 working days.",
+              "Отправляю по всему миру и упаковываю каждый заказ вручную за 1–3 рабочих дня.",
+            )
+          }{" "}
+          <a class="ulink" href="/shipping" target="_blank">{t("Shipping and FAQ", "Доставка и вопросы")}</a>
         </p>
         <p class="of__warn" hidden aria-live="polite" data-country-warn>
-          I can’t ship originals and large prints to the US and Canada yet; 9 × 12 in and A4 prints are fine. If you have an address in another country, send the request anyway.
+          {
+            t(
+              "I can’t ship originals and large prints to the US and Canada yet; 9 × 12 in and A4 prints are fine. If you have an address in another country, send the request anyway.",
+              "В США и Канаду я пока не могу отправлять оригиналы и большие принты, а принты 9 × 12 дюймов и A4 — можно. Если у вас есть адрес в другой стране, всё равно отправьте заявку.",
+            )
+          }
         </p>
-        <p class="of__error" id="err-country" hidden data-error="country">Where should the painting go?</p>
+        <p class="of__error" id="err-country" hidden data-error="country">
+          {t("Where should the painting go?", "Куда отправить картину?")}
+        </p>
       </div>
 
       <div class="of__field">
-        <label class="of__label label" for="of-contact">Telegram, WhatsApp or phone <span class="of__opt">optional</span></label>
+        <label class="of__label label" for="of-contact">
+          {t("Telegram, WhatsApp or phone", "Telegram, WhatsApp или телефон")}
+          <span class="of__opt">{t("optional", "необязательно")}</span>
+        </label>
         <input class="of__input" id="of-contact" name="contact" type="text" autocomplete="off" maxlength="200" />
       </div>
 
       <div class="of__field of__field--wide">
-        <label class="of__label label" for="of-message">Message <span class="of__opt" data-message-opt>optional</span></label>
-        <textarea class="of__input of__area" id="of-message" name="message" rows="4" maxlength="3000" aria-describedby="err-message" placeholder="Questions, other paintings you like, a gift note…"></textarea>
-        <p class="of__error" id="err-message" hidden data-error="message">Tell me what you’re looking for.</p>
+        <label class="of__label label" for="of-message">
+          {t("Message", "Сообщение")} <span class="of__opt" data-message-opt>{t("optional", "необязательно")}</span>
+        </label>
+        <textarea
+          class="of__input of__area"
+          id="of-message"
+          name="message"
+          rows="4"
+          maxlength="3000"
+          aria-describedby="err-message"
+          placeholder={t(
+            "Questions, other paintings you like, a gift note…",
+            "Вопросы, другие понравившиеся картины, подпись к подарку…",
+          )}
+        ></textarea>
+        <p class="of__error" id="err-message" hidden data-error="message">
+          {t("Tell me what you’re looking for.", "Расскажите, что вы ищете.")}
+        </p>
       </div>
     </div>
   </fieldset>
 
   <!-- 03 Согласие и отправка -->
   <fieldset class="of__row" data-reveal="text">
-    <legend class="of__legend label"><span class="of__n num">03</span>Send</legend>
+    <legend class="of__legend label"><span class="of__n num">03</span>{t("Send", "Отправка")}</legend>
     <div class="of__body">
       <div class="of__consent">
         <input class="of__check" id="of-consent" name="consent" type="checkbox" value="yes" required aria-describedby="err-consent" />
         <label for="of-consent">
-          I consent to the processing of my personal data under the terms of the{" "}
-          <a href="/consent" target="_blank">Consent to personal data processing</a>.
+          {
+            lang === "ru" ? (
+              <Fragment>
+                Я даю согласие на обработку моих персональных данных на условиях{" "}
+                <a href="/consent" target="_blank">Согласия на обработку персональных данных</a>.
+              </Fragment>
+            ) : (
+              <Fragment>
+                I consent to the processing of my personal data under the terms of the{" "}
+                <a href="/consent" target="_blank">Consent to personal data processing</a>.
+              </Fragment>
+            )
+          }
         </label>
       </div>
-      <p class="of__error" id="err-consent" hidden data-error="consent">Without your consent I can’t receive the request.</p>
+      <p class="of__error" id="err-consent" hidden data-error="consent">
+        {t("Without your consent I can’t receive the request.", "Без вашего согласия я не могу принять заявку.")}
+      </p>
 
       <!-- ловушка для ботов: людям не видна -->
       <div class="of__trap" aria-hidden="true">
@@ -239,11 +326,21 @@ const countries = codes
 
       <div class="of__send">
         <button class="of__submit" type="submit" data-submit>
-          <span data-submit-label>Send request</span>
+          <span data-submit-label>{strings.send}</span>
           <span aria-hidden="true">→</span>
         </button>
         <p class="of__small muted">
-          This is not a payment. Your details go only to me: see the <a href="/privacy">privacy policy</a>.
+          {
+            lang === "ru" ? (
+              <Fragment>
+                Это не оплата. Ваши данные получаю только я — см. <a href="/privacy">политику конфиденциальности</a>.
+              </Fragment>
+            ) : (
+              <Fragment>
+                This is not a payment. Your details go only to me: see the <a href="/privacy">privacy policy</a>.
+              </Fragment>
+            )
+          }
         </p>
       </div>
 
@@ -254,18 +351,27 @@ const countries = codes
 
 <!-- Заявка ушла: форма заменяется на это -->
 <div class="of__done" hidden tabindex="-1" data-done>
-  <p class="label muted">Request sent</p>
-  <p class="of__done-title display">Thank you<span data-done-name></span>.</p>
-  <p class="of__done-text">
-    Your request<span data-done-work></span> is on its way to me. I’ll write to you at{" "}
-    <strong data-done-email></strong> within a couple of days to agree on shipping and payment.
-  </p>
+  <p class="label muted">{t("Request sent", "Заявка отправлена")}</p>
+  <p class="of__done-title display">{t("Thank you", "Спасибо")}<span data-done-name></span>{t(".", "!")}</p>
+  {
+    lang === "ru" ? (
+      <p class="of__done-text">
+        Ваша заявка<span data-done-work></span> уже летит ко мне. В течение пары дней я напишу вам на{" "}
+        <strong data-done-email></strong>, чтобы договориться о доставке и оплате.
+      </p>
+    ) : (
+      <p class="of__done-text">
+        Your request<span data-done-work></span> is on its way to me. I’ll write to you at{" "}
+        <strong data-done-email></strong> within a couple of days to agree on shipping and payment.
+      </p>
+    )
+  }
   <p class="of__done-text muted">
-    If nothing arrives, check the spam folder or write to me directly:{" "}
+    {t("If nothing arrives, check the spam folder or write to me directly:", "Если ответ не пришёл, проверьте папку «Спам» или напишите мне напрямую:")}{" "}
     <a class="tlink" href={`mailto:${site.email}`}>{site.email}</a>
   </p>
   <p class="of__done-links">
-    <a class="tlink" href="/works">Back to the works</a>
+    <a class="tlink" href="/works">{t("Back to the works", "Вернуться к работам")}</a>
   </p>
 </div>
 
@@ -739,7 +845,10 @@ const countries = codes
     const optionWrap = form.querySelector<HTMLElement>("[data-option-wrap]");
     const optionSelect = form.querySelector<HTMLSelectElement>("[data-option]");
     const optionName = form.querySelector<HTMLElement>("[data-option-name]");
-    type Options = { name: string; list: { label: string; price: string }[] };
+    type Options = { name: string; list: { label: string; value: string; price: string }[] };
+    const strings: Record<string, string> = JSON.parse(form.dataset.strings ?? "{}");
+    const say = (key: string, vars: Record<string, string> = {}) =>
+      (strings[key] ?? "").replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? "");
     const country = $<HTMLSelectElement>("[data-country]");
     const countryWarn = $<HTMLElement>("[data-country-warn]");
     const message = $<HTMLTextAreaElement>("#of-message");
@@ -763,7 +872,14 @@ const countries = codes
         if (optionWrap && optionSelect && optionName) {
           optionWrap.hidden = !opts;
           optionSelect.disabled = !opts;
-          optionSelect.replaceChildren(...(opts?.list ?? []).map((o) => new Option(`${o.label} — ${o.price}`, o.label)));
+          // в обработчик уходит английская подпись варианта (value), показываем — на языке страницы
+          optionSelect.replaceChildren(
+            ...(opts?.list ?? []).map((o) => {
+              const option = new Option(`${o.label} — ${o.price}`, o.value);
+              option.dataset.label = o.label;
+              return option;
+            }),
+          );
           if (opts) optionName.textContent = opts.name;
         }
         pick.hidden = isWork;
@@ -793,9 +909,9 @@ const countries = codes
         });
         // название под миниатюрами при наведении
         const label = r.closest("label")!;
-        const say = () => (peekLine.textContent = [r.dataset.title, r.dataset.price].filter(Boolean).join(" · "));
-        label.addEventListener("pointerenter", say);
-        r.addEventListener("focus", say);
+        const show = () => (peekLine.textContent = [r.dataset.title, r.dataset.price].filter(Boolean).join(" · "));
+        label.addEventListener("pointerenter", show);
+        r.addEventListener("focus", show);
         label.addEventListener("pointerleave", () => (peekLine.innerHTML = "&nbsp;"));
       });
 
@@ -820,7 +936,7 @@ const countries = codes
 
       // «Ask about a similar painting» со страницы проданной работы: /order?work=other&like=<название>
       const like = params.get("like");
-      if (like && !message.value) message.value = `I like “${like}”. Do you have something similar?`;
+      if (like && !message.value) message.value = say("like", { title: like });
     }
 
     // ---------- 02: США и Канада ----------
@@ -881,14 +997,9 @@ const countries = codes
     });
 
     // ---------- Отправка ----------
-    const messages: Record<string, string> = {
-      invalid: "Please check the highlighted fields.",
-      rate: `Too many requests from your connection. Try again in an hour, or write to me at <a href="mailto:${siteEmail}">${siteEmail}</a>.`,
-      default: `Something went wrong on my side and the request didn’t reach me. Please write to me at <a href="mailto:${siteEmail}">${siteEmail}</a> — sorry about that.`,
-    };
-
+    const mailLink = `<a href="mailto:${siteEmail}">${siteEmail}</a>`;
     const showStatus = (code: string) => {
-      status.innerHTML = messages[code] ?? messages.default;
+      status.innerHTML = say(["invalid", "rate"].includes(code) ? code : "default", { email: mailLink });
       status.hidden = false;
     };
 
@@ -899,7 +1010,7 @@ const countries = codes
     const setBusy = (busy: boolean) => {
       submit.setAttribute("aria-busy", String(busy));
       submit.disabled = busy;
-      submitLabel.textContent = busy ? "Sending…" : "Send request";
+      submitLabel.textContent = say(busy ? "sending" : "send");
     };
 
     form.addEventListener("submit", async (e) => {
@@ -926,9 +1037,10 @@ const countries = codes
           const r = current();
           const name = (form.elements.namedItem("name") as HTMLInputElement).value.trim();
           done.querySelector("[data-done-name]")!.textContent = name ? `, ${name.split(" ")[0]}` : "";
-          const option = optionSelect && !optionSelect.disabled ? `, ${optionSelect.value}` : "";
+          const option =
+            optionSelect && !optionSelect.disabled ? `, ${optionSelect.selectedOptions[0]?.dataset.label ?? ""}` : "";
           done.querySelector("[data-done-work]")!.textContent =
-            r && r.value !== "other" ? ` for “${r.dataset.title}”${option}` : "";
+            r && r.value !== "other" ? `${say("doneWork", { title: r.dataset.title ?? "" })}${option}` : "";
           done.querySelector("[data-done-email]")!.textContent = (
             form.elements.namedItem("email") as HTMLInputElement
           ).value.trim();

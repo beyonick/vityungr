@@ -1,21 +1,24 @@
 ---
 import { fieldNotes } from "../../data/series";
+import { langOf, tr } from "../../i18n";
 import { findWork, mediumSize, orderHref, priceOrState, ratioOf, workHref } from "../../lib/works";
 import SectionHead from "../SectionHead.astro";
 import Wall, { type WallItem } from "../Wall.astro";
 
+const lang = langOf(Astro.currentLocale);
+const t = tr(lang);
 const items: WallItem[] = fieldNotes.map((n) => {
   const w = findWork(n.work);
   return {
     src: w.images[0].src,
     ratio: ratioOf(w),
-    alt: n.title,
+    alt: t(n.title, n.titleRu),
     href: workHref(w),
-    title: n.title,
-    meta: n.place,
-    price: priceOrState(w),
-    note: n.text,
-    viewMeta: [mediumSize(w), priceOrState(w)].filter(Boolean).join(" · "),
+    title: t(n.title, n.titleRu),
+    meta: t(n.place, n.placeRu),
+    price: priceOrState(w, lang),
+    note: t(n.text, n.textRu),
+    viewMeta: [mediumSize(w, lang), priceOrState(w, lang)].filter(Boolean).join(" · "),
     order: orderHref(w),
   };
 });
@@ -24,12 +27,19 @@ const items: WallItem[] = fieldNotes.map((n) => {
 <section class="section" id="notes" aria-labelledby="notes-title">
   <SectionHead
     n="05"
-    label="Field notes"
-    aside="From my Instagram captions"
-    title="Painting outdoors never goes quietly"
+    label={t("Field notes", "Заметки с пленэра")}
+    aside={t("From my Instagram captions", "Из подписей в Instagram")}
+    title={t("Painting outdoors never goes quietly", "На пленэре тихо не бывает")}
     titleId="notes-title"
   >
-    <p>Frost, curious cows and neighbours with coffee. A few stories behind the paintings, almost word for word.</p>
+    <p>
+      {
+        t(
+          "Frost, curious cows and neighbours with coffee. A few stories behind the paintings, almost word for word.",
+          "Мороз, любопытные коровы и соседи с кофе. Несколько историй о картинах — почти слово в слово.",
+        )
+      }
+    </p>
   </SectionHead>
   <Wall items={items} height={250} single />
 </section>
